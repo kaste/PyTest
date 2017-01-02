@@ -6,6 +6,8 @@ import html
 import sys
 import os
 import functools
+from collections import defaultdict
+
 
 from Default import exec
 import re
@@ -175,18 +177,7 @@ class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
 
 
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
-LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-# LONG_TB = re.compile(r"^(.*):([0-9]+):(.*?)(.*)", re.M)
-LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
-SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
-                      re.M)
 
-FILE_REGEXES = {
-    'line': LINE_TB,
-    'short': SHORT_TB,
-    'long': LONG_TB,
-    'auto': LONG_TB
-}
 
 class TestExecCommand(exec.ExecCommand):
 
@@ -195,10 +186,8 @@ class TestExecCommand(exec.ExecCommand):
 
         cmd = kw['cmd']
         match = TB_MODE.search(cmd)
-        if match:
-            self._tb_mode = match.group(1)
-        else:
-            self._tb_mode = 'long'
+        mode = match.group(1) if match else 'long'
+        self._tb_formatter = TB_MODES[mode]
 
         return super(TestExecCommand, self).run(**kw)
 
@@ -207,13 +196,11 @@ class TestExecCommand(exec.ExecCommand):
 
         view = self.output_view
 
-        reg = sublime.Region(0, view.size())
-        text = view.substr(reg)
-
         # summary is on the last line
         summary = view.substr(view.line(view.size() - 1))
         summary = summary.replace('=', '')
 
+        text = get_whole_text(view)
         match = re.search(r"collected (\d+) items", text)
         if match:
             sublime.status_message("Ran %s tests. %s"
@@ -263,32 +250,8 @@ class TestExecCommand(exec.ExecCommand):
 
 
         if self.show_errors_inline and characters.find('\n') >= 0:
-            reg = sublime.Region(0, self.output_view.size())
-            text = self.output_view.substr(reg)
-
-            matches = FILE_REGEXES[self._tb_mode].findall(text)
-
-            # We still do the default regex search too bc it gets the
-            # filename correct
-            errs = self.output_view.find_all_results_with_text()
-            assert len(matches) == len(errs)
-
-            errs_by_file = {}
-            for match, err in zip(matches, errs):
-                if self._tb_mode in ('long', 'auto'):
-                    (text, _, line, column, _) = match
-                else:
-                    (_, line, column, text) = match
-                if not text.strip():
-                    continue
-
-                (file, _, _, _) = err
-                line = int(line)
-                column = 0
-                if file not in errs_by_file:
-                    errs_by_file[file] = []
-                errs_by_file[file].append((line, column, text))
-            self.errs_by_file = errs_by_file
+            self.errs_by_file = parse_output(
+                self.output_view, self._tb_formatter.get_matches)
 
             self.update_phantoms()
 
@@ -311,8 +274,6 @@ class TestExecCommand(exec.ExecCommand):
             </style>
         '''
 
-        tb_mode = self._tb_mode
-
         for file, errs in self.errs_by_file.items():
             view = self.window.find_open_file(file)
             if view:
@@ -326,25 +287,11 @@ class TestExecCommand(exec.ExecCommand):
 
                 phantoms = []
 
-                for line, column, text in errs:
-                    pt = view.text_point(line - 1, column - 1)
+                for line, text in errs:
+                    pt = view.text_point(line - 1, 0)
+                    indentation = get_indentation_at(view, pt)
 
-                    code_line = view.substr(view.line(pt))
-                    indentation = len(code_line) - len(code_line.lstrip(' '))
-                    if tb_mode != 'line' and indentation > 4:
-                        indentation -= 4
-                    indentation = indentation * ' '
-                    if tb_mode in ('long', 'auto'):
-                        indentation = ''
-
-                    lines = text.split("\n")
-                    if tb_mode == 'short':
-                        # Remove leading 'E'
-                        lines = [' ' + l[1:] for l in lines]
-                    lines = [indentation + l for l in lines]
-                    lines = [html.escape(l, quote=False) for l in lines]
-                    lines = [l.replace(' ', '&nbsp;')for l in lines]
-                    text = '<br />'.join(lines)
+                    text = self._tb_formatter.format_text(text, indentation)
 
                     phantoms.append(sublime.Phantom(
                         sublime.Region(pt, view.line(pt).b),
@@ -357,3 +304,101 @@ class TestExecCommand(exec.ExecCommand):
 
                 phantom_set.update(phantoms)
 
+
+def get_whole_text(view):
+    # type: (View) -> str
+
+    reg = sublime.Region(0, view.size())
+    return view.substr(reg)
+
+
+def get_indentation_at(view, pt):
+    line = view.substr(view.line(pt))
+    return len(line) - len(line.lstrip(' '))
+
+
+
+LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
+LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
+SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
+                      re.M)
+
+
+class ShortTraceback:
+    REGEX = SHORT_TB
+
+    @classmethod
+    def get_matches(cls, text):
+        matches = cls.REGEX.findall(text)
+        return [(m[1], m[3]) for m in matches]
+
+
+    @classmethod
+    def format_text(cls, text, indentation):
+        if indentation > 4:
+            indentation -= 4
+
+        indentation = indentation * ' '
+
+        return '<br />'.join(
+            html.escape(indentation + ' ' + l[1:],
+                        quote=False).replace(' ', '&nbsp;')
+            for l in text.split("\n"))
+
+class LineTraceback(ShortTraceback):
+    REGEX = LINE_TB
+
+    @classmethod
+    def format_text(cls, text, indentation):
+        indentation = indentation * ' '
+
+        return '<br />'.join(
+            html.escape(indentation + l, quote=False).replace(' ', '&nbsp;')
+            for l in text.split("\n"))
+
+class LongTraceback:
+    REGEX = LONG_TB
+
+    @classmethod
+    def get_matches(cls, text):
+        matches = cls.REGEX.findall(text)
+        return [(m[2], m[0]) for m in matches]
+
+
+    @classmethod
+    def format_text(cls, text, indentation):
+        return "<br />".join(
+            html.escape(l, quote=False).replace(' ', '&nbsp;')
+            for l in text.split("\n"))
+
+def parse_output(view, get_matches):
+    # type: (View, Callable) -> Dict[Filename, List[Tuple[Line, Column, Text]]]
+
+    text = get_whole_text(view)
+    matches = get_matches(text)
+
+    # We still do the default regex search too bc it gets the
+    # filename correct
+    errs = view.find_all_results_with_text()
+    assert len(matches) == len(errs)
+
+    errs_by_file = defaultdict(list)
+    for match, err in zip(matches, errs):
+        (line, text) = match
+        if text.strip() == '':
+            continue
+
+        (file, _, _, _) = err
+        line = int(line)
+        column = 0
+        errs_by_file[file].append((line, text))
+
+    return errs_by_file
+
+
+TB_MODES = {
+    'line': LineTraceback,
+    'short': ShortTraceback,
+    'long': LongTraceback,
+    'auto': LongTraceback
+}

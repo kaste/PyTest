@@ -6,7 +6,7 @@
 
     // supported tb modes are: line, short, long, auto
     // show-locals via -l
-    "options": "--tb=long -l",
+    "options": "--tb=auto -l",
 
     // usually your project_path (which is the first folder in your project
     // settings)
