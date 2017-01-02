@@ -1,0 +1,40 @@
+{
+    // point to your py.test executable
+    // usually use the one from your virtualenv
+    // e.g. "~/venvs/{project_base}/scripts/py.test"
+    "pytest": "py.test",
+
+    "options": "--tb=short --lf",
+
+    // the options for the first run (t.i.not a re-run)
+    // I like to have a "--tb=line" here so I get an overview, probably I just
+    // have a couple of failures pointing to the same line
+    "first": "--tb=short",
+
+    // the options to use on consecutive calls
+    "then": "--tb=short",
+
+    // usually your project_path (which is the first folder in your project
+    // settings)
+    "working_dir": "${project_path}",
+
+    // where your tests are located
+    // usually below your project_path so use a relative path
+    // e.g. "tests" "foo/tests"
+    "tests_dir": "",
+
+    // false | true | 'all'
+    // if true saves the current view only
+    "save_before_test": true,
+
+    // determines the kind of the output view. Either 'panel' or 'view'
+    "output": "panel",
+
+    "hide_panel_unless_failures": true,
+
+
+    "file_regex": "^(.*):([0-9]+):(.)(.*)"
+    // "file_regex": "^(.*):([0-9]+):(.)(?:.*)(?:\\s{4}.+)+\\v((?:E.+\\v?)*)"
+    // "file_regex": "^(.*):([0-9]+):(.)(.*(?:\n|\r\n?).*(?:\n|\r\n?))"
+
+}

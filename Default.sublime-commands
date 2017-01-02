@@ -1,0 +1,10 @@
+[
+    {"caption": "PyTest: Set and Run", "command": "run_pytest",
+                                       "args": {"rerun": false}},
+    {"caption": "PyTest: Overview", "command": "run_pytest",
+                                    "args": {"options": "--tb=line --lf"}},
+    {"caption": "PyTest: Re-Run last test", "command": "run_pytest",
+                                            "args": {"rerun": true}},
+    {"caption": "PyTest: Clear markers", "command": "pytest_set_markers"}
+
+]
