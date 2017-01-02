@@ -42,7 +42,7 @@ class Settings(object):
 Settings = Settings('PyTest')
 
 
-class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
+class PytestRunCommand(sublime_plugin.WindowCommand):
     def run(self, options=None):
         """"""
         settings = self.get_settings()
@@ -51,7 +51,7 @@ class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
         else:
             settings['options'] = Settings.get('options')
 
-        self.window.run_command("pytest_run", settings)
+        self.window.run_command("pytest_set_and_run", settings)
         LastRun.settings = settings
 
 
@@ -61,86 +61,44 @@ class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
             rv[key] = Settings.get(key)
 
         env = self.window.extract_variables()
-        # view = self.window.active_view()
-        # env = environment(view)
         try:
             filename = env['file_base_name']
             if "_test" in filename or "test_" in filename:
                 rv['target'] = env['file']
             else:
-                rv['target'] = sublime.expand_variables(Settings.get('tests_dir'), env)
+                rv['target'] = sublime.expand_variables(
+                    Settings.get('tests_dir'), env)
         except KeyError:
-            rv['target'] = sublime.expand_variables(Settings.get('tests_dir'), env)
-            # rv['target'] = Settings.get('tests_dir').format(**env)
+            rv['target'] = sublime.expand_variables(
+                Settings.get('tests_dir'), env)
 
         return rv
 
 
-class PytestRerunCommand(sublime_plugin.WindowCommand):
-    def run(self, options=None):
-        """"""
-        settings = LastRun.settings
-        if not settings:
-            self.window.run_command("pytest_set_and_run")
-            return
-
-        if options:
-            settings['options'] = options
-        else:
-            settings['options'] = Settings.get("then")
-
-        self.window.run_command("pytest_run", settings)
-
-
-def environment(view):
-    window = view.window()
-
-    rv = {}
-
-    filename = view.file_name()
-    if filename:
-        rv['file'] = filename
-        rv['file_path'] = os.path.dirname(filename)
-        rv['file_base'] = os.path.basename(filename)
-
-
-    if window and window.folders():
-        rv['project_path'] = window.folders()[0]
-    elif filename:
-        rv['project_path'] = rv['file_path']
-
-    if 'project_path' in rv:
-        rv['project_base'] = os.path.basename(rv['project_path'])
-        print(rv['project_base'], rv['project_path'])
-
-    return rv
-
-
-
-class PytestRunCommand(sublime_plugin.WindowCommand):
+class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
         """
         kwargs: pytest, options, target, working_dir, file_regex
         """
-        args = self.make_args(kwargs)
-        print(kwargs)
-        print("Running %s" % args['cmd'][0])
-        sublime.status_message("Running %s" % args['cmd'][0])
+        ap = self.window.active_panel()
 
-        # save = Settings.get('save_before_test')
-        # if save is True:
-        #     av = self.window.active_view()
-        #     if av and av.is_dirty():
-        #         self.window.run_command("save")
-        # elif save == 'all':
-        #     selfs.window.run_command("save_all")
+        args = self.make_args(kwargs)
+        sublime.status_message("Running %s" % args['cmd'])
+
+        save = Settings.get('save_before_test')
+        if save is True:
+            av = self.window.active_view()
+            if av and av.is_dirty():
+                self.window.run_command("save")
+        elif save == 'all':
+            selfs.window.run_command("save_all")
 
         self.window.run_command("test_exec", args)
-        if Settings.get('hide_panel_unless_failures'):
+
+        if ap != 'output.exec':
             self.window.run_command("hide_panel", {"panel": "output.exec"})
 
     def make_args(self, kwargs):
-        env = environment(self.window.active_view())
         env = self.window.extract_variables()
 
         for key in ['pytest', 'target', 'working_dir']:
@@ -157,6 +115,14 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             "quiet": True
         }
 
+
+class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
+    def on_post_save_async(self, view):
+        mode = Settings.get('mode')
+        print('Hi')
+        if mode == 'auto':
+            print('AutoRun')
+            view.window().run_command("pytest_run")
 
 
 
@@ -210,27 +176,30 @@ class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
 
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-LONG_TB = re.compile(r"^(.*):([0-9]+):(.*?)(.*)", re.M)
+# LONG_TB = re.compile(r"^(.*):([0-9]+):(.*?)(.*)", re.M)
+LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
 SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
                       re.M)
 
 FILE_REGEXES = {
     'line': LINE_TB,
     'short': SHORT_TB,
-    'long': LONG_TB
+    'long': LONG_TB,
+    'auto': LONG_TB
 }
 
 class TestExecCommand(exec.ExecCommand):
 
     def run(self, **kw):
         self.dots = ""
-        print("RUN", kw)
+
         cmd = kw['cmd']
         match = TB_MODE.search(cmd)
         if match:
             self._tb_mode = match.group(1)
         else:
             self._tb_mode = 'long'
+
         return super(TestExecCommand, self).run(**kw)
 
     def finish(self, proc):
@@ -261,7 +230,7 @@ class TestExecCommand(exec.ExecCommand):
         self.dots += dot
         sublime.status_message("Testing " + self.dots[-400:])
 
-        if dot in 'FX':
+        if dot in 'FX' and Settings.get('open_panel_on_failures'):
             sublime.active_window().run_command(
                 "show_panel", {"panel": "output.exec"})
 
@@ -306,7 +275,10 @@ class TestExecCommand(exec.ExecCommand):
 
             errs_by_file = {}
             for match, err in zip(matches, errs):
-                (_, line, column, text) = match
+                if self._tb_mode in ('long', 'auto'):
+                    (text, _, line, column, _) = match
+                else:
+                    (_, line, column, text) = match
                 if not text.strip():
                     continue
 
@@ -362,12 +334,15 @@ class TestExecCommand(exec.ExecCommand):
                     if tb_mode != 'line' and indentation > 4:
                         indentation -= 4
                     indentation = indentation * ' '
+                    if tb_mode in ('long', 'auto'):
+                        indentation = ''
 
                     lines = text.split("\n")
-                    if tb_mode != 'line':
+                    if tb_mode == 'short':
                         # Remove leading 'E'
                         lines = [' ' + l[1:] for l in lines]
                     lines = [indentation + l for l in lines]
+                    lines = [html.escape(l, quote=False) for l in lines]
                     lines = [l.replace(' ', '&nbsp;')for l in lines]
                     text = '<br />'.join(lines)
 

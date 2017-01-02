@@ -4,15 +4,9 @@
     // e.g. "~/venvs/{project_base}/scripts/py.test"
     "pytest": "py.test",
 
-    "options": "--tb=short --lf",
-
-    // the options for the first run (t.i.not a re-run)
-    // I like to have a "--tb=line" here so I get an overview, probably I just
-    // have a couple of failures pointing to the same line
-    "first": "--tb=short",
-
-    // the options to use on consecutive calls
-    "then": "--tb=short",
+    // supported tb modes are: line, short, long, auto
+    // show-locals via -l
+    "options": "--tb=long -l",
 
     // usually your project_path (which is the first folder in your project
     // settings)
@@ -25,16 +19,14 @@
 
     // false | true | 'all'
     // if true saves the current view only
-    "save_before_test": true,
+    "save_before_test": false,
 
-    // determines the kind of the output view. Either 'panel' or 'view'
-    "output": "panel",
+    // "auto" == on save
+    "mode": "auto",
 
-    "hide_panel_unless_failures": true,
+    "open_panel_on_failures": false,
 
 
     "file_regex": "^(.*):([0-9]+):(.)(.*)"
-    // "file_regex": "^(.*):([0-9]+):(.)(?:.*)(?:\\s{4}.+)+\\v((?:E.+\\v?)*)"
-    // "file_regex": "^(.*):([0-9]+):(.)(.*(?:\n|\r\n?).*(?:\n|\r\n?))"
 
 }
