@@ -15,12 +15,6 @@
                         "caption": "PyTest Runner",
                         "children":
                         [
-                            // {
-                            //     "command": "open_file",
-                            //     "args": {"file": "${packages}/SublimeOnSaveBuild/README.md"},
-                            //     "caption": "README"
-                            // },
-                            // { "caption": "-" },
                             {
                                 "command": "open_file",
                                 "args": {"file": "${packages}/PyTest/PyTest.sublime-settings"},
@@ -30,10 +24,6 @@
                                 "command": "open_file",
                                 "args": {"file": "${packages}/User/PyTest.sublime-settings"},
                                 "caption": "Settings – User"
-                            },
-                            {
-                                "command": "open_file_settings",
-                                "caption": "Settings – Syntax Specific – User"
                             }
                         ]
                     }
