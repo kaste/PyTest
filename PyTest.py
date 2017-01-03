@@ -15,7 +15,7 @@ import re
 
 class TemporaryStorage(object):
     settings = {}
-    markers = []
+    markers = {}
 
 
 LastRun = TemporaryStorage()
