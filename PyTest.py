@@ -282,6 +282,9 @@ class TestExecCommand(exec.ExecCommand):
                     pt = view.text_point(line - 1, 0)
                     indentation = get_indentation_at(view, pt)
 
+                    if text.strip() == '':
+                        continue
+
                     text = self._tb_formatter.format_text(text, indentation)
 
                     phantoms.append(sublime.Phantom(
@@ -321,13 +324,9 @@ def parse_output(view, get_matches):
 
     errs_by_file = defaultdict(list)
     for match, err in zip(matches, errs):
-        (line, text) = match
-        if text.strip() == '':
-            continue
-
         (file, _, _, _) = err
+        (line, text) = match
         line = int(line)
-        column = 0
         errs_by_file[file].append((line, text))
 
     return errs_by_file
