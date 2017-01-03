@@ -284,7 +284,9 @@ class TestExecCommand(exec.ExecCommand):
                     pt = view.text_point(line - 1, 0)
                     indentation = get_indentation_at(view, pt)
 
-                    text = self._tb_formatter.format_text(text, indentation)
+                    formatter = line_formatter(
+                        self._tb_formatter.formatter(indentation))
+                    text = format_text(formatter, text)
 
                     phantoms.append(sublime.Phantom(
                         sublime.Region(pt, view.line(pt).b),
@@ -309,60 +311,6 @@ def get_indentation_at(view, pt):
     line = view.substr(view.line(pt))
     return len(line) - len(line.lstrip(' '))
 
-
-
-LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
-SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
-                      re.M)
-
-
-class ShortTraceback:
-    REGEX = SHORT_TB
-
-    @classmethod
-    def get_matches(cls, text):
-        matches = cls.REGEX.findall(text)
-        return [(m[1], m[3]) for m in matches]
-
-
-    @classmethod
-    def format_text(cls, text, indentation):
-        if indentation > 4:
-            indentation -= 4
-
-        indentation = indentation * ' '
-
-        return '<br />'.join(
-            html.escape(indentation + ' ' + l[1:],
-                        quote=False).replace(' ', '&nbsp;')
-            for l in text.split("\n"))
-
-class LineTraceback(ShortTraceback):
-    REGEX = LINE_TB
-
-    @classmethod
-    def format_text(cls, text, indentation):
-        indentation = indentation * ' '
-
-        return '<br />'.join(
-            html.escape(indentation + l, quote=False).replace(' ', '&nbsp;')
-            for l in text.split("\n"))
-
-class LongTraceback:
-    REGEX = LONG_TB
-
-    @classmethod
-    def get_matches(cls, text):
-        matches = cls.REGEX.findall(text)
-        return [(m[2], m[0]) for m in matches]
-
-
-    @classmethod
-    def format_text(cls, text, indentation):
-        return "<br />".join(
-            html.escape(l, quote=False).replace(' ', '&nbsp;')
-            for l in text.split("\n"))
 
 def parse_output(view, get_matches):
     # type: (View, Callable) -> Dict[Filename, List[Tuple[Line, Column, Text]]]
@@ -389,9 +337,80 @@ def parse_output(view, get_matches):
     return errs_by_file
 
 
+
+
+
+def indent(level):
+    indentation = level * ' '
+    return lambda t: indentation + t
+
+def reduced_indent(level):
+    if level > 4:
+        level -= 4
+    return indent(level)
+
+def replace_leading_E(t):
+    return ' ' + t[1:]
+
+def escape(t):
+    return html.escape(t, quote=False)
+
+def replace_spaces(t):
+    return t.replace(' ', '&nbsp;')
+
+
+def format_line(fns, line):
+    # type: (List[Callable[[str], str]], str) -> str
+    return functools.reduce(lambda t, fn: fn(t), fns, line)
+
+def line_formatter(fns):
+    # type: (List[Callable[[str], str]]) -> Callable[[str], str]
+    return functools.partial(format_line, fns)
+
+
+def format_text(formatter, text):
+    return '<br />'.join(map(formatter, text.split("\n")))
+
+
+
+LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
+LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
+SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
+                      re.M)
+
+def _get_matches(regex, i, j, text):
+    # type: (Regex, int, int, str) -> List[Tuple[line, text]]
+    return [(m[i], m[j]) for m in regex.findall(text)]
+
+
+class ShortTraceback:
+    get_matches = functools.partial(_get_matches, SHORT_TB, 1, 3)
+
+    @classmethod
+    def formatter(cls, indentation_level):
+        return (replace_leading_E, reduced_indent(indentation_level), escape,
+                replace_spaces)
+
+
+class LineTraceback:
+    get_matches = functools.partial(get_matches, LINE_TB, 1, 3)
+
+    @classmethod
+    def formatter(cls, indentation_level):
+        return (indent(indentation_level), escape, replace_spaces)
+
+
+class LongTraceback:
+    get_matches = functools.partial(get_matches, LONG_TB, 2, 0)
+
+    @classmethod
+    def formatter(cls, indentation_level=None):
+        return (escape, replace_spaces)
+
 TB_MODES = {
     'line': LineTraceback,
     'short': ShortTraceback,
     'long': LongTraceback,
     'auto': LongTraceback
 }
+
