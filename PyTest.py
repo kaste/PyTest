@@ -396,7 +396,7 @@ class ShortTraceback:
 
 
 class LineTraceback:
-    get_matches = functools.partial(get_matches, LINE_TB, 1, 3)
+    get_matches = functools.partial(_get_matches, LINE_TB, 1, 3)
 
     @classmethod
     def formatter(cls, indentation_level):
@@ -408,7 +408,7 @@ class LineTraceback:
 
 
 class LongTraceback:
-    get_matches = functools.partial(get_matches, LONG_TB, 2, 0)
+    get_matches = functools.partial(_get_matches, LONG_TB, 2, 0)
 
     @classmethod
     def formatter(cls, indentation_level=None):
