@@ -86,9 +86,12 @@ class PytestRunnerCommand(sublime_plugin.WindowCommand):
 
 class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
     def on_post_save_async(self, view):
-        mode = Settings.get('mode')
-        if mode == 'auto':
-            view.window().run_command("pytest_run")
+        if Settings.get('mode') != 'auto':
+            return
+        if view.window().extract_variables()['file_extension'] != 'py':
+            return
+
+        view.window().run_command("pytest_run")
 
 
 class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
