@@ -130,24 +130,17 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
 
 
 def annotate_view(view, markers):
-    filename = view.file_name()
-    if not filename:
-        return
-
     view.erase_regions('PyTestRunner')
 
-    regions = []
-    for marker in markers:
-        fn, line, h = marker
-        if sys.platform == 'win32':
-            # we have a cygwin like path e.g. "/c/users" instead of "c:\"
-            fn = os.path.normpath(fn)
-            fn = fn[2:]
-            filename = os.path.splitdrive(filename)[1]
+    window = view.window()
+    for fn, errs in markers.items():
+        if window.find_open_file(fn) == view:
+            break
+    else:
+        return
 
-        if fn == filename:
-            region = view.full_line(view.text_point(line - 1, h))
-            regions.append(region)
+    regions = [view.full_line(view.text_point(line - 1, 0))
+               for (line, _) in errs]
 
     view.add_regions('PyTestRunner', regions,
                      'markup.deleted.diff',
@@ -206,12 +199,12 @@ class TestExecCommand(exec.ExecCommand):
             sublime.status_message("Ran %s tests. %s"
                                    % (match.group(1), summary))
 
-        markers = view.find_all_results()
+        # markers = view.find_all_results()
         # we can't serialize a tuple in the settings, so we listify each marker
-        markers = [list(marker) for marker in markers]
+        # markers = [list(marker) for marker in markers]
 
         sublime.active_window().run_command("pytest_set_markers",
-                                            {"markers": markers})
+                                            {"markers": self.errs_by_file})
 
     def append_dots(self, dot):
         self.dots += dot
