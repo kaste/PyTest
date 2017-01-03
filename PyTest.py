@@ -20,7 +20,15 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         else:
             settings['options'] = Settings.get('options')
 
-        self.window.run_command("pytest_set_and_run", settings)
+        save = Settings.get('save_before_test')
+        if save is True:
+            av = self.window.active_view()
+            if av and av.is_dirty():
+                self.window.run_command("save")
+        elif save == 'all':
+            self.window.run_command("save_all")
+
+        self.window.run_command("pytest_runner", settings)
 
 
     def get_settings(self):
@@ -43,7 +51,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         return rv
 
 
-class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
+class PytestRunnerCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
         """
         kwargs: pytest, options, target, working_dir, file_regex
@@ -53,25 +61,17 @@ class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
         args = self.make_args(kwargs)
         sublime.status_message("Running %s" % args['cmd'])
 
-        save = Settings.get('save_before_test')
-        if save is True:
-            av = self.window.active_view()
-            if av and av.is_dirty():
-                self.window.run_command("save")
-        elif save == 'all':
-            self.window.run_command("save_all")
-
         self.window.run_command("pytest_exec", args)
 
         if ap != 'output.exec':
             self.window.run_command("hide_panel", {"panel": "output.exec"})
+
 
     def make_args(self, kwargs):
         env = self.window.extract_variables()
 
         for key in ['pytest', 'target', 'working_dir']:
             kwargs[key] = sublime.expand_variables(kwargs[key], env)
-            # kwargs[key] = kwargs[key].format(**env)
 
         command = "{pytest} {options} {target}".format(**kwargs)
 
