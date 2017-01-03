@@ -125,45 +125,107 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
             view.window().run_command("pytest_run")
 
 
+STYLESHEET = '''
+    <style>
+        div.error {
+            padding: 0rem 0.7rem 0.4rem 0rem;
+            margin: 0.2rem 0;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        div.error span.message {
+            padding-right: 0.7rem;
+        }
+    </style>
+'''
 
 
-def annotate_view(view, markers):
-    view.erase_regions('PyTestRunner')
+class _Annotator:
+    def __init__(self):
+        self.remember({}, None)
 
-    window = view.window()
-    for fn, errs in markers.items():
-        if window.find_open_file(fn) == view:
-            break
-    else:
-        return
+    def remember(self, errs, formatter, intermediate=False):
+        self._errs = errs
+        self._formatter = formatter
+        self._drawn = set()
+        self.phantom_sets_by_buffer = {}
+        self.annotate_visible_views(intermediate=intermediate)
 
-    regions = [view.full_line(view.text_point(line - 1, 0))
-               for (line, _) in errs]
+    def annotate(self, view, intermediate=False):
+        buffer_id = view.buffer_id()
+        if buffer_id in self._drawn:
+            return
 
-    view.add_regions('PyTestRunner', regions,
-                     'markup.deleted.diff',
-                     'bookmark',
-                     sublime.DRAW_OUTLINED)
+        window = view.window()
+        for file, errs in self._errs.items():
+            if view == window.find_open_file(file):
+                break
+        else:
+            if intermediate:
+                return
+            view.erase_regions('PyTestRunner')
+            self._drawn.add(buffer_id)
+            return
+
+        self._draw_regions(view, errs)
+        self._draw_phantoms(view, errs)
+        self._drawn.add(buffer_id)
+
+    def _draw_regions(self, view, errs):
+        regions = [view.full_line(view.text_point(line - 1, 0))
+                   for (line, _) in errs]
+
+        view.erase_regions('PyTestRunner')
+        view.add_regions('PyTestRunner', regions,
+                         'markup.deleted.diff',
+                         'bookmark',
+                         sublime.DRAW_OUTLINED)
+
+    def _draw_phantoms(self, view, errs):
+        phantoms = []
+
+        for line, text in errs:
+            pt = view.text_point(line - 1, 0)
+            indentation = get_indentation_at(view, pt)
+
+            text = self._formatter.format_text(text, indentation)
+
+            phantoms.append(sublime.Phantom(
+                sublime.Region(pt, view.line(pt).b),
+                ('<body id=inline-error>' + STYLESHEET +
+                    '<div class="error">' +
+                    '<span class="message">' + text + '</span>' +
+                    '</div>' +
+                    '</body>'),
+                sublime.LAYOUT_BELOW))
+
+        buffer_id = view.buffer_id()
+        if buffer_id not in self.phantom_sets_by_buffer:
+            phantom_set = sublime.PhantomSet(view, "exec")
+            self.phantom_sets_by_buffer[buffer_id] = phantom_set
+        else:
+            phantom_set = self.phantom_sets_by_buffer[buffer_id]
+
+        phantom_set.update(phantoms)
 
 
-class PytestSetMarkersCommand(sublime_plugin.WindowCommand):
-    def run(self, markers=[]):
-        LastRun.markers = markers
-
-        # immediately paint the visible tabs
+    def annotate_visible_views(self, intermediate=False):
         window = sublime.active_window()
+
         views = [window.active_view_in_group(group)
                  for group in range(window.num_groups())]
 
-        # print markers
         for view in views:
-            annotate_view(view, markers)
+            self.annotate(view, intermediate=intermediate)
+
+
+Annotator = _Annotator()
+
 
 class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
     def on_activated(self, view):
-        markers = LastRun.markers
-        # print markers
-        annotate_view(view, markers)
+        Annotator.annotate(view)
 
 
 
@@ -197,12 +259,7 @@ class TestExecCommand(exec.ExecCommand):
             sublime.status_message("Ran %s tests. %s"
                                    % (match.group(1), summary))
 
-        # markers = view.find_all_results()
-        # we can't serialize a tuple in the settings, so we listify each marker
-        # markers = [list(marker) for marker in markers]
-
-        sublime.active_window().run_command("pytest_set_markers",
-                                            {"markers": self.errs_by_file})
+        Annotator.remember(self.errs_by_file, self._tb_formatter)
 
     def append_dots(self, dot):
         self.dots += dot
@@ -244,59 +301,12 @@ class TestExecCommand(exec.ExecCommand):
             self.errs_by_file = parse_output(
                 self.output_view, self._tb_formatter.get_matches)
 
-            self.update_phantoms()
+            Annotator.remember(self.errs_by_file, self._tb_formatter,
+                               intermediate=True)
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
 
-    def update_phantoms(self):
-        stylesheet = '''
-            <style>
-                div.error {
-                    padding: 0rem 0.7rem 0.4rem 0rem;
-                    margin: 0.2rem 0;
-                    border-radius: 2px;
-                    position: relative;
-                }
-
-                div.error span.message {
-                    padding-right: 0.7rem;
-                }
-            </style>
-        '''
-
-        for file, errs in self.errs_by_file.items():
-            view = self.window.find_open_file(file)
-            if view:
-
-                buffer_id = view.buffer_id()
-                if buffer_id not in self.phantom_sets_by_buffer:
-                    phantom_set = sublime.PhantomSet(view, "exec")
-                    self.phantom_sets_by_buffer[buffer_id] = phantom_set
-                else:
-                    phantom_set = self.phantom_sets_by_buffer[buffer_id]
-
-                phantoms = []
-
-                for line, text in errs:
-                    pt = view.text_point(line - 1, 0)
-                    indentation = get_indentation_at(view, pt)
-
-                    if text.strip() == '':
-                        continue
-
-                    text = self._tb_formatter.format_text(text, indentation)
-
-                    phantoms.append(sublime.Phantom(
-                        sublime.Region(pt, view.line(pt).b),
-                        ('<body id=inline-error>' + stylesheet +
-                            '<div class="error">' +
-                            '<span class="message">' + text + '</span>' +
-                            '</div>' +
-                            '</body>'),
-                        sublime.LAYOUT_BELOW))
-
-                phantom_set.update(phantoms)
 
 
 def get_whole_text(view):
