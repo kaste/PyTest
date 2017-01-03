@@ -121,9 +121,7 @@ class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
 class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
     def on_post_save_async(self, view):
         mode = Settings.get('mode')
-        print('Hi')
         if mode == 'auto':
-            print('AutoRun')
             view.window().run_command("pytest_run")
 
 
