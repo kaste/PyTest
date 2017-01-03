@@ -61,7 +61,7 @@ class PytestSetAndRunCommand(sublime_plugin.WindowCommand):
         elif save == 'all':
             self.window.run_command("save_all")
 
-        self.window.run_command("test_exec", args)
+        self.window.run_command("pytest_exec", args)
 
         if ap != 'output.exec':
             self.window.run_command("hide_panel", {"panel": "output.exec"})

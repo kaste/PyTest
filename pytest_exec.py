@@ -14,7 +14,7 @@ from Default import exec as std_exec
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
 
 
-class TestExecCommand(std_exec.ExecCommand):
+class PytestExecCommand(std_exec.ExecCommand):
 
     def run(self, **kw):
         self.dots = ""
@@ -24,10 +24,10 @@ class TestExecCommand(std_exec.ExecCommand):
         mode = match.group(1) if match else 'long'
         self._tb_formatter = formatters.TB_MODES[mode]
 
-        return super(TestExecCommand, self).run(**kw)
+        return super(PytestExecCommand, self).run(**kw)
 
     def finish(self, proc):
-        super(TestExecCommand, self).finish(proc)
+        super(PytestExecCommand, self).finish(proc)
 
         view = self.output_view
 
@@ -56,7 +56,7 @@ class TestExecCommand(std_exec.ExecCommand):
         as_str = bytes.decode(data)
         if as_str in '.FxXs':
             sublime.set_timeout(functools.partial(self.append_dots, as_str), 0)
-        super(TestExecCommand, self).on_data(proc, data)
+        super(PytestExecCommand, self).on_data(proc, data)
 
     def service_text_queue(self):
         self.text_queue_lock.acquire()
