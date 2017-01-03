@@ -17,14 +17,6 @@ import re
 Annotator = annotator.Annotator()
 
 
-class TemporaryStorage(object):
-    settings = {}
-    markers = {}
-
-
-LastRun = TemporaryStorage()
-
-
 class Settings(object):
     def __init__(self, name):
         self.name = name
@@ -58,7 +50,6 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             settings['options'] = Settings.get('options')
 
         self.window.run_command("pytest_set_and_run", settings)
-        LastRun.settings = settings
 
 
     def get_settings(self):
