@@ -282,9 +282,7 @@ class TestExecCommand(exec.ExecCommand):
                     pt = view.text_point(line - 1, 0)
                     indentation = get_indentation_at(view, pt)
 
-                    formatter = line_formatter(
-                        self._tb_formatter.formatter(indentation))
-                    text = format_text(formatter, text)
+                    text = self._tb_formatter.format_text(text, indentation)
 
                     phantoms.append(sublime.Phantom(
                         sublime.Region(pt, view.line(pt).b),
@@ -371,6 +369,7 @@ def format_text(formatter, text):
 
 
 
+
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
 LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
 SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
@@ -380,6 +379,8 @@ def _get_matches(regex, i, j, text):
     # type: (Regex, int, int, str) -> List[Tuple[line, text]]
     return [(m[i], m[j]) for m in regex.findall(text)]
 
+def _format_text(formatter, text):
+    return format_text(line_formatter(formatter), text)
 
 class ShortTraceback:
     get_matches = functools.partial(_get_matches, SHORT_TB, 1, 3)
@@ -389,6 +390,10 @@ class ShortTraceback:
         return (replace_leading_E, reduced_indent(indentation_level), escape,
                 replace_spaces)
 
+    @classmethod
+    def format_text(cls, text, indentation_level):
+        return _format_text(cls.formatter(indentation_level), text)
+
 
 class LineTraceback:
     get_matches = functools.partial(get_matches, LINE_TB, 1, 3)
@@ -397,6 +402,10 @@ class LineTraceback:
     def formatter(cls, indentation_level):
         return (indent(indentation_level), escape, replace_spaces)
 
+    @classmethod
+    def format_text(cls, text, indentation_level):
+        return _format_text(cls.formatter(indentation_level), text)
+
 
 class LongTraceback:
     get_matches = functools.partial(get_matches, LONG_TB, 2, 0)
@@ -404,6 +413,11 @@ class LongTraceback:
     @classmethod
     def formatter(cls, indentation_level=None):
         return (escape, replace_spaces)
+
+    @classmethod
+    def format_text(cls, text, indentation_level):
+        return _format_text(cls.formatter(indentation_level), text)
+
 
 TB_MODES = {
     'line': LineTraceback,
