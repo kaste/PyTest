@@ -66,6 +66,8 @@ class Annotator:
             pt = view.text_point(line - 1, 0)
             indentation = get_indentation_at(view, pt)
 
+            if text == '':
+                continue
             text = self._formatter.format_text(text, indentation)
 
             phantoms.append(sublime.Phantom(
