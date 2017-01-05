@@ -83,8 +83,8 @@ class PytestExecCommand(std_exec.ExecCommand):
             self.errs_by_file = parse_output(
                 self.output_view, self._tb_formatter.get_matches)
 
-            PyTest.Annotator.remember(self.errs_by_file, self._tb_formatter,
-                               intermediate=True)
+            PyTest.Annotator.remember(
+                self.errs_by_file, self._tb_formatter, intermediate=True)
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
