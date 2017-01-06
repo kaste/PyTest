@@ -1,7 +1,6 @@
 
 import functools
 import html
-import re
 
 
 
@@ -38,22 +37,10 @@ def format_text(formatter, text):
 
 
 
-
-LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
-SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
-                      re.M)
-
-def _get_matches(regex, i, j, text):
-    # type: (Regex, int, int, str) -> List[Tuple[line, text]]
-    return [(m[i], m[j]) for m in regex.findall(text)]
-
 def _format_text(formatter, text):
     return format_text(line_formatter(formatter), text)
 
 class ShortTraceback:
-    get_matches = functools.partial(_get_matches, SHORT_TB, 1, 3)
-
     @classmethod
     def formatter(cls, indentation_level):
         return (replace_leading_E, reduced_indent(indentation_level), escape,
@@ -65,8 +52,6 @@ class ShortTraceback:
 
 
 class LineTraceback:
-    get_matches = functools.partial(_get_matches, LINE_TB, 1, 3)
-
     @classmethod
     def formatter(cls, indentation_level):
         return (indent(indentation_level), escape, replace_spaces)
@@ -77,8 +62,6 @@ class LineTraceback:
 
 
 class LongTraceback:
-    get_matches = functools.partial(_get_matches, LONG_TB, 2, 0)
-
     @classmethod
     def formatter(cls, indentation_level=None):
         return (escape, replace_spaces)

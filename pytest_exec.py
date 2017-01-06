@@ -5,14 +5,37 @@ import re
 
 from collections import defaultdict
 
-from . import formatters
 from . import PyTest
 
 
 from Default import exec as std_exec
 
+
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
 
+def get_trace_back_mode(cmd):
+    # type: (str) -> str
+    """Parses cmd and returns a trace back mode"""
+
+    match = TB_MODE.search(cmd)
+    return match.group(1) if match else 'auto'
+
+def _get_matches(regex, i, j, text):
+    # type: (Regex, int, int, str) -> List[Tuple[Line, Text]]
+    return [(m[i], m[j]) for m in regex.findall(text)]
+
+
+LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
+LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
+SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
+                      re.M)
+
+Matchers = {
+    'line': functools.partial(_get_matches, LINE_TB, 1, 3),
+    'short': functools.partial(_get_matches, SHORT_TB, 1, 3),
+    'long': functools.partial(_get_matches, LONG_TB, 2, 0),
+    'auto': functools.partial(_get_matches, LONG_TB, 2, 0)
+}
 
 def broadcast_errors(window, message):
     window.run_command("pytest_remember_errors", message)
@@ -24,10 +47,8 @@ class PytestExecCommand(std_exec.ExecCommand):
         self.dots = ""
 
         cmd = kw['cmd']
-        match = TB_MODE.search(cmd)
-        mode = match.group(1) if match else 'long'
+        mode = get_trace_back_mode(cmd)
         self._tb_mode = mode
-        self._tb_formatter = formatters.TB_MODES[mode]
 
         return super(PytestExecCommand, self).run(**kw)
 
@@ -89,7 +110,7 @@ class PytestExecCommand(std_exec.ExecCommand):
 
         if self.show_errors_inline and characters.find('\n') >= 0:
             self.errs_by_file = parse_output(
-                self.output_view, self._tb_formatter.get_matches)
+                self.output_view, Matchers[self._tb_mode])
 
             broadcast_errors(self.window, {
                 "errors": self.errs_by_file,
