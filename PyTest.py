@@ -111,5 +111,12 @@ class PytestWillFail(sublime_plugin.WindowCommand):
                 "show_panel", {"panel": "output.exec"})
 
 
+class PytestXpassed(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.run_command(
+            "show_panel", {"panel": "output.exec"})
+
+
+
 
 

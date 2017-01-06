@@ -61,6 +61,8 @@ display_alive_ping = alive_indicator()
 
 
 class PytestExecCommand(exec.ExecCommand):
+    def broadcast(self, name, message=None):
+        self.window.run_command(name, message)
 
     def run(self, **kw):
         self.dots = ""
@@ -83,7 +85,11 @@ class PytestExecCommand(exec.ExecCommand):
             sublime.status_message("Ran %s tests. %s"
                                    % (match.group(1), summary))
 
-        broadcast_errors(self.window, {
+        match = re.search(r"XPASS", text)
+        if match:
+            self.broadcast('pytest_xpassed')
+
+        self.broadcast('pytest_remember_errors', {
             "errors": parse_output(
                 self.output_view, Matchers[self._tb_mode]),
             "formatter": self._tb_mode
@@ -111,7 +117,7 @@ class PytestExecCommand(exec.ExecCommand):
         display_alive_ping()
 
         if characters.find('\n') >= 0:
-            broadcast_errors(self.window, {
+            self.broadcast('pytest_remember_errors', {
                 "errors": parse_output(
                     self.output_view, Matchers[self._tb_mode]),
                 "formatter": self._tb_mode,
@@ -119,7 +125,7 @@ class PytestExecCommand(exec.ExecCommand):
             })
         else:
             if characters in 'FX':
-                self.window.run_command("pytest_will_fail")
+                self.broadcast("pytest_will_fail")
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
