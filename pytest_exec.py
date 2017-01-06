@@ -62,7 +62,6 @@ display_alive_ping = alive_indicator()
 
 class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
-        self.dots = ""
         self._tb_mode = get_trace_back_mode(kw['cmd'])
 
         return super(PytestExecCommand, self).run(**kw)
