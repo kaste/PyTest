@@ -21,7 +21,7 @@ def get_trace_back_mode(cmd):
 
 def _get_matches(regex, i, j, text):
     # type: (Regex, int, int, str) -> List[Tuple[Line, Text]]
-    return [(m[i], m[j]) for m in regex.findall(text)]
+    return [(int(m[i]), m[j]) for m in regex.findall(text)]
 
 
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
@@ -152,11 +152,9 @@ def parse_output(view, get_matches):
     errs = view.find_all_results_with_text()
     assert len(matches) == len(errs)
 
+    files = (file for (file, _, _, _) in errs)
     errs_by_file = defaultdict(list)
-    for match, err in zip(matches, errs):
-        (file, _, _, _) = err
-        (line, text) = match
-        line = int(line)
+    for file, (line, text) in zip(files, matches):
         errs_by_file[file].append((line, text))
 
     return errs_by_file
