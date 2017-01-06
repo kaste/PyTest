@@ -1,12 +1,13 @@
 
 import sublime
+import itertools
 import functools
 import re
 
 from collections import defaultdict
 
 
-from Default import exec as std_exec
+from Default import exec
 
 
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
@@ -39,7 +40,27 @@ def broadcast_errors(window, message):
     window.run_command("pytest_remember_errors", message)
 
 
-class PytestExecCommand(std_exec.ExecCommand):
+
+def alive_indicator():
+    i = 0
+    s = '----x----'
+    c = [s[i:] + s[:i] for i in range(len(s))]
+
+    # cycler = itertools.cycle(['|', '/', '-', '\\'])
+    cycler = itertools.cycle(itertools.chain(c))
+
+    def ping():
+        nonlocal i
+        i += 1
+        if i % 10 == 0:
+            sublime.status_message('PyTest running [%s]' % next(cycler))
+    return ping
+
+
+display_alive_ping = alive_indicator()
+
+
+class PytestExecCommand(exec.ExecCommand):
 
     def run(self, **kw):
         self.dots = ""
@@ -68,17 +89,6 @@ class PytestExecCommand(std_exec.ExecCommand):
             "formatter": self._tb_mode
         })
 
-    def append_dots(self, dot):
-        self.dots += dot
-        sublime.status_message("Testing " + self.dots[-400:])
-
-    def on_data(self, proc, data):
-        # print ">>", proc, ">>", data
-        as_str = bytes.decode(data)
-        if as_str in '.FxXs':
-            sublime.set_timeout(functools.partial(self.append_dots, as_str), 0)
-        super(PytestExecCommand, self).on_data(proc, data)
-
     def service_text_queue(self):
         self.text_queue_lock.acquire()
 
@@ -98,7 +108,7 @@ class PytestExecCommand(std_exec.ExecCommand):
             'append',
             {'characters': characters, 'force': True, 'scroll_to_end': False})
 
-
+        display_alive_ping()
 
         if characters.find('\n') >= 0:
             broadcast_errors(self.window, {
