@@ -103,7 +103,10 @@ class PytestRememberErrors(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
         Annotator.remember(**kwargs)
 
-        if kwargs['errors'] and Settings.get('open_panel_on_failures'):
+
+class PytestWillFail(sublime_plugin.WindowCommand):
+    def run(self):
+        if Settings.get('open_panel_on_failures'):
             self.window.run_command(
                 "show_panel", {"panel": "output.exec"})
 

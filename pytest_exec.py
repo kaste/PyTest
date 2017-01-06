@@ -117,6 +117,9 @@ class PytestExecCommand(exec.ExecCommand):
                 "formatter": self._tb_mode,
                 "intermediate": True
             })
+        else:
+            if characters in 'FX':
+                self.window.run_command("pytest_will_fail")
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
