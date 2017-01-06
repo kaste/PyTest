@@ -45,10 +45,7 @@ class PytestExecCommand(std_exec.ExecCommand):
 
     def run(self, **kw):
         self.dots = ""
-
-        cmd = kw['cmd']
-        mode = get_trace_back_mode(cmd)
-        self._tb_mode = mode
+        self._tb_mode = get_trace_back_mode(kw['cmd'])
 
         return super(PytestExecCommand, self).run(**kw)
 
@@ -68,7 +65,8 @@ class PytestExecCommand(std_exec.ExecCommand):
                                    % (match.group(1), summary))
 
         broadcast_errors(self.window, {
-            "errors": self.errs_by_file,
+            "errors": parse_output(
+                self.output_view, Matchers[self._tb_mode]),
             "formatter": self._tb_mode
         })
 
@@ -109,11 +107,9 @@ class PytestExecCommand(std_exec.ExecCommand):
 
 
         if self.show_errors_inline and characters.find('\n') >= 0:
-            self.errs_by_file = parse_output(
-                self.output_view, Matchers[self._tb_mode])
-
             broadcast_errors(self.window, {
-                "errors": self.errs_by_file,
+                "errors": parse_output(
+                    self.output_view, Matchers[self._tb_mode]),
                 "formatter": self._tb_mode,
                 "intermediate": True
             })
