@@ -111,7 +111,7 @@ def get_whole_text(view):
 
 
 def parse_output(view, get_matches):
-    # type: (View, Callable) -> Dict[Filename, List[Tuple[Line, Column, Text]]]
+    # type: (View, Callable) -> Dict[Filename, List[Tuple[Line, Text]]]
 
     text = get_whole_text(view)
     matches = get_matches(text)
