@@ -78,8 +78,13 @@ class PytestExecCommand(exec.ExecCommand):
         text = get_whole_text(view)
         match = re.search(r"collected (\d+) items", text)
         if match:
-            sublime.status_message("Ran %s tests. %s"
-                                   % (match.group(1), summary))
+            # If we don't defer here, the status message will not appear,
+            # if we have failures (t.i. other sideeffects, phantoms etc.)!
+            sublime.set_timeout(
+                functools.partial(
+                    sublime.status_message,
+                    "Ran %s tests. %s" % (match.group(1), summary)), 1)
+
 
         match = re.search(r"XPASS", text)
         if match:
