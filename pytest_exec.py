@@ -106,7 +106,7 @@ class PytestExecCommand(std_exec.ExecCommand):
 
 
 
-        if self.show_errors_inline and characters.find('\n') >= 0:
+        if characters.find('\n') >= 0:
             broadcast_errors(self.window, {
                 "errors": parse_output(
                     self.output_view, Matchers[self._tb_mode]),
