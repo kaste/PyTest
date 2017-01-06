@@ -34,11 +34,11 @@ class Annotator:
         if buffer_id in self._drawn:
             return
 
-        window = view.window()
-        for file, errs in self._errs.items():
-            if view == window.find_open_file(file):
-                break
-        else:
+        errs = get_errors_for_view(view, self._errs)
+        if errs is None:
+            # As long as intermediate is True, the tests are still running, and
+            # we just don't know if the view really is clean.
+            # Thus, to reduce visual clutter, we return immediately.
             if intermediate:
                 return
             view.erase_regions('PyTestRunner')
@@ -99,7 +99,26 @@ class Annotator:
             self.annotate(view, intermediate=intermediate)
 
 
+def get_errors_for_view(view, errors_by_view):
+    # type: (View, Dict[Filename, Errors]) -> Optional(Errors)
+    """Return errors for a given view or None
+
+    The problem we're facing here is that the filenames are cygwin
+    like paths; so although errors_by_view already is a dict keyed
+    by filename we cannot just use errors_by_view[view.file_name()],
+    but must let sublime do the hard work by utilizing find_open_file()
+    """
+
+    window = view.window()
+    for file, errs in errors_by_view.items():
+        if view == window.find_open_file(file):
+            return errs
+
+
 def get_indentation_at(view, pt):
+    # type: (View, Point) -> int
+    """Return the indentation level as an int given a view and a point"""
+
     line = view.substr(view.line(pt))
     return len(line) - len(line.lstrip(' '))
 
