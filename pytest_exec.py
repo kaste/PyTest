@@ -36,8 +36,8 @@ Matchers = {
     'auto': functools.partial(_get_matches, LONG_TB, 2, 0)
 }
 
-def broadcast_errors(window, message):
-    window.run_command("pytest_remember_errors", message)
+def broadcast(event, message=None):
+    sublime.active_window().run_command(event, message)
 
 
 
@@ -61,9 +61,6 @@ display_alive_ping = alive_indicator()
 
 
 class PytestExecCommand(exec.ExecCommand):
-    def broadcast(self, name, message=None):
-        self.window.run_command(name, message)
-
     def run(self, **kw):
         self.dots = ""
         self._tb_mode = get_trace_back_mode(kw['cmd'])
@@ -87,9 +84,9 @@ class PytestExecCommand(exec.ExecCommand):
 
         match = re.search(r"XPASS", text)
         if match:
-            self.broadcast('pytest_xpassed')
+            broadcast('pytest_xpassed')
 
-        self.broadcast('pytest_remember_errors', {
+        broadcast('pytest_remember_errors', {
             "errors": parse_output(
                 self.output_view, Matchers[self._tb_mode]),
             "formatter": self._tb_mode
@@ -117,7 +114,7 @@ class PytestExecCommand(exec.ExecCommand):
         display_alive_ping()
 
         if characters.find('\n') >= 0:
-            self.broadcast('pytest_remember_errors', {
+            broadcast('pytest_remember_errors', {
                 "errors": parse_output(
                     self.output_view, Matchers[self._tb_mode]),
                 "formatter": self._tb_mode,
@@ -125,7 +122,7 @@ class PytestExecCommand(exec.ExecCommand):
             })
         else:
             if characters in 'FX':
-                self.broadcast("pytest_will_fail")
+                broadcast("pytest_will_fail")
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
