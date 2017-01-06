@@ -5,8 +5,6 @@ import re
 
 from collections import defaultdict
 
-from . import PyTest
-
 
 from Default import exec as std_exec
 
@@ -73,10 +71,6 @@ class PytestExecCommand(std_exec.ExecCommand):
     def append_dots(self, dot):
         self.dots += dot
         sublime.status_message("Testing " + self.dots[-400:])
-
-        if dot in 'FX' and PyTest.Settings.get('open_panel_on_failures'):
-            sublime.active_window().run_command(
-                "show_panel", {"panel": "output.exec"})
 
     def on_data(self, proc, data):
         # print ">>", proc, ">>", data
