@@ -14,6 +14,10 @@ from Default import exec as std_exec
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
 
 
+def broadcast_errors(window, message):
+    window.run_command("pytest_remember_errors", message)
+
+
 class PytestExecCommand(std_exec.ExecCommand):
 
     def run(self, **kw):
@@ -22,6 +26,7 @@ class PytestExecCommand(std_exec.ExecCommand):
         cmd = kw['cmd']
         match = TB_MODE.search(cmd)
         mode = match.group(1) if match else 'long'
+        self._tb_mode = mode
         self._tb_formatter = formatters.TB_MODES[mode]
 
         return super(PytestExecCommand, self).run(**kw)
@@ -41,7 +46,10 @@ class PytestExecCommand(std_exec.ExecCommand):
             sublime.status_message("Ran %s tests. %s"
                                    % (match.group(1), summary))
 
-        PyTest.Annotator.remember(self.errs_by_file, self._tb_formatter)
+        broadcast_errors(self.window, {
+            "errors": self.errs_by_file,
+            "formatter": self._tb_mode
+        })
 
     def append_dots(self, dot):
         self.dots += dot
@@ -83,8 +91,11 @@ class PytestExecCommand(std_exec.ExecCommand):
             self.errs_by_file = parse_output(
                 self.output_view, self._tb_formatter.get_matches)
 
-            PyTest.Annotator.remember(
-                self.errs_by_file, self._tb_formatter, intermediate=True)
+            broadcast_errors(self.window, {
+                "errors": self.errs_by_file,
+                "formatter": self._tb_mode,
+                "intermediate": True
+            })
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)

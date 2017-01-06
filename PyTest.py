@@ -99,3 +99,10 @@ class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
         Annotator.annotate(view)
 
 
+class PytestRememberErrors(sublime_plugin.WindowCommand):
+    def run(self, **kwargs):
+        Annotator.remember(**kwargs)
+
+
+
+

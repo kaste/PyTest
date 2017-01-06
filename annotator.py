@@ -1,6 +1,8 @@
 
 import sublime
 
+from . import formatters
+
 
 STYLESHEET = '''
     <style>
@@ -20,11 +22,11 @@ STYLESHEET = '''
 
 class Annotator:
     def __init__(self):
-        self.remember({}, None)
+        self.remember({})
 
-    def remember(self, errs, formatter, intermediate=False):
-        self._errs = errs
-        self._formatter = formatter
+    def remember(self, errors, formatter='auto', intermediate=False):
+        self._errs = errors
+        self._formatter = formatters.TB_MODES[formatter]
         self._drawn = set()
         self.phantom_sets_by_buffer = {}
         self.annotate_visible_views(intermediate=intermediate)
