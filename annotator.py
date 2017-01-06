@@ -27,8 +27,12 @@ class Annotator:
     def remember(self, errors, formatter='auto', intermediate=False):
         self._errs = errors
         self._formatter = formatters.TB_MODES[formatter]
+
+        # resets
         self._drawn = set()
         self.phantom_sets_by_buffer = {}
+
+        # action
         self.annotate_visible_views(intermediate=intermediate)
 
     def annotate(self, view, intermediate=False):
