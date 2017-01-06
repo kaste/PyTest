@@ -96,7 +96,7 @@ class PytestExecCommand(std_exec.ExecCommand):
 
         self.output_view.run_command(
             'append',
-            {'characters': characters, 'force': True, 'scroll_to_end': True})
+            {'characters': characters, 'force': True, 'scroll_to_end': False})
 
 
 
