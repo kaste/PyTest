@@ -110,6 +110,8 @@ class PytestWillFail(sublime_plugin.WindowCommand):
             self.window.run_command(
                 "show_panel", {"panel": "output.exec"})
 
+        flash_status_bar('pytest_is_red')
+
 
 class PytestXpassed(sublime_plugin.WindowCommand):
     def run(self):
@@ -117,6 +119,10 @@ class PytestXpassed(sublime_plugin.WindowCommand):
             "show_panel", {"panel": "output.exec"})
 
 
+def flash_status_bar(flag):
+    settings = sublime.load_settings('Preferences.sublime-settings')
+    settings.set(flag, True)
 
+    sublime.set_timeout(lambda: settings.erase(flag), 1500)
 
 
