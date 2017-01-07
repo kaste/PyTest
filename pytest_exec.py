@@ -70,30 +70,30 @@ class PytestExecCommand(exec.ExecCommand):
         super(PytestExecCommand, self).finish(proc)
 
         view = self.output_view
-
-        # summary is on the last line
-        summary = view.substr(view.line(view.size() - 1))
-        summary = summary.replace('=', '')
-
         text = get_whole_text(view)
-        match = re.search(r"collected (\d+) items", text)
-        if match:
-            # If we don't defer here, the status message will not appear,
-            # if we have failures (t.i. other sideeffects, phantoms etc.)!
-            sublime.set_timeout(
-                functools.partial(
-                    sublime.status_message,
-                    "Ran %s tests. %s" % (match.group(1), summary)), 1)
-
 
         match = re.search(r"XPASS", text)
         if match:
             broadcast('pytest_xpassed')
 
+        errors = parse_output(self.output_view, Matchers[self._tb_mode])
         broadcast('pytest_remember_errors', {
-            "errors": parse_output(
-                self.output_view, Matchers[self._tb_mode]),
+            "errors": errors,
             "formatter": self._tb_mode
+        })
+
+        summary = ''
+
+        match = re.search(r"collected (\d+) items", text)
+        if match:
+            summary = "Ran %s tests. " % (match.group(1))
+
+        last_line = view.substr(view.line(view.size() - 1))
+        summary += last_line.replace('=', '')
+
+        broadcast('pytest_finished', {
+            "summary": summary,
+            "failures": bool(errors)
         })
 
     def service_text_queue(self):
