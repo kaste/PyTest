@@ -24,7 +24,7 @@ class Annotator:
     def __init__(self):
         self._last_errors = None
 
-    def annotate(self, view, errors={}, formatter='auto', running=False,
+    def annotate(self, view, errors={}, mode='auto', running=False,
                  **_):
         if errors != self._last_errors:
             # reset 'local' state
@@ -48,7 +48,7 @@ class Annotator:
             return
 
         self._draw_regions(view, errs)
-        self._draw_phantoms(view, errs, formatter)
+        self._draw_phantoms(view, errs, mode)
         self._drawn.add(buffer_id)
 
     def _draw_regions(self, view, errs):
@@ -61,8 +61,8 @@ class Annotator:
                          'bookmark',
                          sublime.DRAW_OUTLINED)
 
-    def _draw_phantoms(self, view, errs, formatter='auto'):
-        formatter = formatters.TB_MODES[formatter]
+    def _draw_phantoms(self, view, errs, mode='auto'):
+        formatter = formatters.TB_MODES[mode]
         phantoms = []
 
         for line, text in errs:
