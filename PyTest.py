@@ -146,7 +146,7 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
 
 
 class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
-    def on_activated(self, view):
+    def on_activated_async(self, view):
         Annotator.annotate(view, **State)
 
 
