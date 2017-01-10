@@ -8,7 +8,7 @@ The defaults: it will run your tests on save; it will not show the output panel 
 
 ![annotated view showing phantom](phantom.jpg)
 
-Which test it will run depends on the red/green status of the previous run, and if you're currently editing a test file or an implementation file. It should work really okay. Set `"mode": "manual"` and just use your own key bindings if you think that's stupid. See `Default.sublime-commands` for some examples.
+Which test it will run depends on the red/green status of the previous run, and if you're currently editing a test file or an implementation file. It should work really okay. Set `"mode": "manual"` and just use your own key bindings if you think that's stupid. See [`Default.sublime-commands`](https://github.com/kaste/PyTest/blob/master/Default.sublime-commands) for some examples.
 
 You __really__ should add
 
@@ -42,7 +42,7 @@ You probably should also have a keybinding to show/hide the output panel quickly
 
 As long as it's not listed, you must manually download/clone from github and put it in your Packages directory.
 
-At least **look** at the global settings. You usually have to edit the `pytest` setting to point at your py.test from your current virtualenv (the default is to run your global py.test which is usually *not* what you want). E.g.
+At least **look** at the [global settings](https://github.com/kaste/PyTest/blob/master/PyTest.sublime-settings). You usually have to edit the `pytest` setting to point at your py.test from your current virtualenv (the default is to run your global py.test which is usually *not* what you want). E.g.
 
     "pytest": "~/venvs/{project_base_name}/bin/py.test"
     OR:
