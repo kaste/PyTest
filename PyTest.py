@@ -1,6 +1,7 @@
 import sublime
 import sublime_plugin
 
+import itertools
 
 from . import annotator
 from . import settings
@@ -94,7 +95,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         })
 
         args = self.make_args(kwargs)
-        sublime.status_message("Running %s" % args['cmd'])
+        show_status_ping()
 
         self.window.run_command("pytest_exec", args)
 
@@ -163,6 +164,19 @@ class PytestStart(sublime_plugin.WindowCommand):
         })
 
 
+class PytestFinished(sublime_plugin.WindowCommand):
+    def run(self, summary, failures):
+        State.update({
+            'summary': summary,
+            'failures': failures,
+            'running': False
+        })
+
+        sublime.status_message(summary)
+        if not failures:
+            flash_status_bar('pytest_is_green', 500)
+
+
 class PytestRememberErrors(sublime_plugin.WindowCommand):
     def run(self, errors):
         State.update({
@@ -191,18 +205,9 @@ class PytestXpassed(sublime_plugin.WindowCommand):
         self.window.run_command(
             "show_panel", {"panel": "output.exec"})
 
-
-class PytestFinished(sublime_plugin.WindowCommand):
-    def run(self, summary, failures):
-        State.update({
-            'summary': summary,
-            'failures': failures,
-            'running': False
-        })
-
-        sublime.status_message(summary)
-        if not failures:
-            flash_status_bar('pytest_is_green', 500)
+class PytestStillRunning(sublime_plugin.WindowCommand):
+    def run(self):
+        show_status_ping()
 
 
 def flash_status_bar(flag, ms=1500):
@@ -211,4 +216,27 @@ def flash_status_bar(flag, ms=1500):
 
     sublime.set_timeout(lambda: settings.erase(flag), ms)
 
+
+def alive_indicator():
+    i = 0
+    s = '----x----'
+    c = [s[i:] + s[:i] for i in range(len(s))]
+
+    # cycler = itertools.cycle(['|', '/', '-', '\\'])
+    cycler = itertools.cycle(itertools.chain(c))
+
+    def ping():
+        nonlocal i
+        i += 1
+        if i % 10 == 0:
+            try:
+                msg = "%s %s" % (State['options'], State['target'])
+            except KeyError:
+                msg = ''
+            sublime.status_message(
+                'Running [%s] %s' % (next(cycler), msg))
+    return ping
+
+
+show_status_ping = alive_indicator()
 

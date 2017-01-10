@@ -1,6 +1,5 @@
 
 import sublime
-import itertools
 import functools
 import re
 
@@ -38,26 +37,6 @@ Matchers = {
 
 def broadcast(event, message=None):
     sublime.active_window().run_command(event, message)
-
-
-
-def alive_indicator():
-    i = 0
-    s = '----x----'
-    c = [s[i:] + s[:i] for i in range(len(s))]
-
-    # cycler = itertools.cycle(['|', '/', '-', '\\'])
-    cycler = itertools.cycle(itertools.chain(c))
-
-    def ping():
-        nonlocal i
-        i += 1
-        if i % 10 == 0:
-            sublime.status_message('PyTest running [%s]' % next(cycler))
-    return ping
-
-
-display_alive_ping = alive_indicator()
 
 
 class PytestExecCommand(exec.ExecCommand):
@@ -119,8 +98,6 @@ class PytestExecCommand(exec.ExecCommand):
             'append',
             {'characters': characters, 'force': True, 'scroll_to_end': False})
 
-        display_alive_ping()
-
         # actually only relevant with instafail
         if characters.find('\n') >= 0:
             broadcast('pytest_remember_errors', {
@@ -130,6 +107,8 @@ class PytestExecCommand(exec.ExecCommand):
         else:
             if characters in 'FX':
                 broadcast("pytest_will_fail")
+
+        broadcast('pytest_still_running')
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
