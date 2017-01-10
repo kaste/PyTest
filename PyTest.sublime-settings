@@ -12,10 +12,10 @@
     // settings)
     "working_dir": "${project_path}",
 
-    // where your tests are located
-    // usually below your project_path so use a relative path
-    // e.g. "tests" "foo/tests"
-    "tests_dir": "",
+    // where your tests are located, often you can leave this blank because
+    // pytest will find your tests anyway. Otherwise usually below the
+    // `working_dir`, so use a relative path, e.g. "tests" or "foo/tests"
+    "target": "",
 
     // false | true | 'all'
     // if true saves the current view only

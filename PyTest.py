@@ -13,18 +13,18 @@ Settings = settings.Settings('PyTest')
 State = {}
 
 
-class PytestRunCommand(sublime_plugin.WindowCommand):
+class PytestAutoRunCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
-        """Prepare run arguments and delegate to pytest_runner
+        """Prepare run arguments and delegate to pytest_run
 
         Accepts `pytest`, `options`, `target`, `working_dir` as keyword
-        arguments. Fills in the defaults from one of your setting
-        files/locations. Saves the file under edit or all files if you've
-        set the `save_before_test` setting. Fills in a specific target
-        with its own algorithm depending on the red/green status and your
-        edits if you didn't provide one.
+        arguments, and passes them to `pytest_run`. Saves the file under
+        edit or all files if you've set the `save_before_test` setting.
+        Fills in a specific target with its own algorithm depending on the
+        red/green status and your edits if you didn't provide one.
         """
-        settings = self.get_settings(kwargs)
+        settings = kwargs.copy()
+        settings.setdefault('target', self._compute_target())
 
         save = Settings.get('save_before_test')
         if save is True:
@@ -34,16 +34,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         elif save == 'all':
             self.window.run_command("save_all")
 
-        self.window.run_command("pytest_runner", settings)
-
-
-    def get_settings(self, kwargs):
-        rv = {key: kwargs.get(key, Settings.get(key))
-              for key in ['pytest', 'options', 'working_dir', 'file_regex']}
-
-        rv['target'] = kwargs.get('target', self._compute_target())
-
-        return rv
+        self.window.run_command("pytest_run", settings)
 
     def _compute_target(self):
         modified = State.get('modified', False)
@@ -63,13 +54,13 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             return default_target
         else:  # green and not modified
             print('green and not modified')
-            return Settings.get('tests_dir')
+            return Settings.get('target')
 
     def _compute_default_target(self):
         """Returns a potential target
 
         If you're on a `.py` file return that, otherwise whatever you've
-        set as `tests_dir` in one of setting files.
+        set as `target` in one of setting files.
         """
         env = self.window.extract_variables()
         try:
@@ -78,27 +69,30 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
                 return env['file']
         except KeyError:
             pass
-        return Settings.get('tests_dir')
+        return Settings.get('target')
 
 
 
-class PytestRunnerCommand(sublime_plugin.WindowCommand):
+class PytestRunCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
         """ Construct final `cmd` and execute pytest_exec
 
         Accepts `pytest`, `options`, `target`, `working_dir` as keyword
-        arguments. Expands the environment variables in the paths. Runs
-        PytestExec. Ensures that the panel stays open if it was open or
+        arguments. Fills in missing arguments from your setting files or
+        your project settings. Expands the environment variables in the paths.
+        Runs PytestExec. Ensures that the panel stays open if it was open or
         closed if it was closed.
 
         """
         ap = self.window.active_panel()
 
+        kwargs = self._fill_in_defaults(kwargs)
         kwargs = self._expand(kwargs)
         State.update({
             'target': kwargs['target'],
             'options': kwargs['options'],
         })
+
         args = self.make_args(kwargs)
         sublime.status_message("Running %s" % args['cmd'])
 
@@ -106,6 +100,11 @@ class PytestRunnerCommand(sublime_plugin.WindowCommand):
 
         if ap != 'output.exec':
             self.window.run_command("hide_panel", {"panel": "output.exec"})
+
+    def _fill_in_defaults(self, kwargs):
+        return {key: kwargs.get(key, Settings.get(key))
+                for key in ['pytest', 'options', 'target', 'working_dir',
+                            'file_regex']}
 
     def _expand(self, kwargs):
         env = self.window.extract_variables()
@@ -132,7 +131,7 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
         if Settings.get('mode') != 'auto':
             return
 
-        view.window().run_command("pytest_run")
+        view.window().run_command("pytest_auto_run")
 
     def on_modified_async(self, view):
         if not view.file_name() or view.settings().get('is_widget'):
