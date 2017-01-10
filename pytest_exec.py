@@ -62,7 +62,12 @@ display_alive_ping = alive_indicator()
 
 class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
-        self._tb_mode = get_trace_back_mode(kw['cmd'])
+        mode = self._tb_mode = get_trace_back_mode(kw['cmd'])
+
+        broadcast('pytest_start', {
+            'mode': mode,
+            'cmd': kw['cmd']
+        })
 
         return super(PytestExecCommand, self).run(**kw)
 
@@ -72,15 +77,11 @@ class PytestExecCommand(exec.ExecCommand):
         view = self.output_view
         text = get_whole_text(view)
 
-        match = re.search(r"XPASS", text)
-        if match:
+        xpassed = re.search(r"XPASS", text)
+        if xpassed:
             broadcast('pytest_xpassed')
 
         errors = parse_output(self.output_view, Matchers[self._tb_mode])
-        broadcast('pytest_remember_errors', {
-            "errors": errors,
-            "formatter": self._tb_mode
-        })
 
         summary = ''
 
@@ -93,7 +94,10 @@ class PytestExecCommand(exec.ExecCommand):
 
         broadcast('pytest_finished', {
             "summary": summary,
-            "failures": bool(errors)
+            "failures": bool(errors or xpassed)
+        })
+        broadcast('pytest_remember_errors', {
+            "errors": errors,
         })
 
     def service_text_queue(self):
@@ -117,12 +121,11 @@ class PytestExecCommand(exec.ExecCommand):
 
         display_alive_ping()
 
+        # actually only relevant with instafail
         if characters.find('\n') >= 0:
             broadcast('pytest_remember_errors', {
                 "errors": parse_output(
                     self.output_view, Matchers[self._tb_mode]),
-                "formatter": self._tb_mode,
-                "intermediate": True
             })
         else:
             if characters in 'FX':

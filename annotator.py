@@ -22,37 +22,33 @@ STYLESHEET = '''
 
 class Annotator:
     def __init__(self):
-        self.remember({})
+        self._last_errors = None
 
-    def remember(self, errors, formatter='auto', intermediate=False):
-        self._errs = errors
-        self._formatter = formatters.TB_MODES[formatter]
+    def annotate(self, view, errors={}, formatter='auto', running=False,
+                 **_):
+        if errors != self._last_errors:
+            # reset 'local' state
+            self._drawn = set()
+            self._phantom_sets_by_buffer = {}
+            self._last_errors = errors
 
-        # resets
-        self._drawn = set()
-        self.phantom_sets_by_buffer = {}
-
-        # action
-        self.annotate_visible_views(intermediate=intermediate)
-
-    def annotate(self, view, intermediate=False):
         buffer_id = view.buffer_id()
         if buffer_id in self._drawn:
             return
 
-        errs = get_errors_for_view(view, self._errs)
+        errs = get_errors_for_view(view, errors)
         if errs is None:
-            # As long as intermediate is True, the tests are still running, and
-            # we just don't know if the view really is clean.
-            # Thus, to reduce visual clutter, we return immediately.
-            if intermediate:
+            # As long the tests are still running, we just don't know if
+            # the view really is clean. To reduce visual clutter, we return
+            # immediately.
+            if running:
                 return
             view.erase_regions('PyTestRunner')
             self._drawn.add(buffer_id)
             return
 
         self._draw_regions(view, errs)
-        self._draw_phantoms(view, errs)
+        self._draw_phantoms(view, errs, formatter)
         self._drawn.add(buffer_id)
 
     def _draw_regions(self, view, errs):
@@ -65,7 +61,8 @@ class Annotator:
                          'bookmark',
                          sublime.DRAW_OUTLINED)
 
-    def _draw_phantoms(self, view, errs):
+    def _draw_phantoms(self, view, errs, formatter='auto'):
+        formatter = formatters.TB_MODES[formatter]
         phantoms = []
 
         for line, text in errs:
@@ -74,7 +71,7 @@ class Annotator:
 
             if text == '':
                 continue
-            text = self._formatter.format_text(text, indentation)
+            text = formatter.format_text(text, indentation)
 
             phantoms.append(sublime.Phantom(
                 sublime.Region(pt, view.line(pt).b),
@@ -86,23 +83,23 @@ class Annotator:
                 sublime.LAYOUT_BELOW))
 
         buffer_id = view.buffer_id()
-        if buffer_id not in self.phantom_sets_by_buffer:
+        if buffer_id not in self._phantom_sets_by_buffer:
             phantom_set = sublime.PhantomSet(view, "exec")
-            self.phantom_sets_by_buffer[buffer_id] = phantom_set
+            self._phantom_sets_by_buffer[buffer_id] = phantom_set
         else:
-            phantom_set = self.phantom_sets_by_buffer[buffer_id]
+            phantom_set = self._phantom_sets_by_buffer[buffer_id]
 
         phantom_set.update(phantoms)
 
 
-    def annotate_visible_views(self, intermediate=False):
+    def annotate_visible_views(self, **kwargs):
         window = sublime.active_window()
 
         views = [window.active_view_in_group(group)
                  for group in range(window.num_groups())]
 
         for view in views:
-            self.annotate(view, intermediate=intermediate)
+            self.annotate(view, **kwargs)
 
 
 def get_errors_for_view(view, errors_by_view):
