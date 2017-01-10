@@ -4,13 +4,13 @@ The plugin basically runs your tests, and annotates your files using the traceba
 
 # Common workflow
 
-The defaults: it will run your test on save; it will not show the output panel but annotate your views on failures instead.
+The defaults: it will run your tests on save; it will not show the output panel but annotate your views on failures instead. Like so:
 
 ![annotated view showing phantom](phantom.jpg)
 
-You probably should have a keybinding to show/hide the output panel. See (...)
+Which test it will run depends on the red/green status of the previous run, and if you're currently editing a test file or an implementation file. It should work really okay. Set `"mode": "manual"` and just use your own key bindings if you think that's stupid. See `Default.sublime-commands` for some examples.
 
-You can add
+You __really__ should add
 
     {
         "class": "status_bar",
@@ -18,7 +18,7 @@ You can add
         "layer0.tint": [155, 7, 8], // -RED
     },
 
-to your `.sublime.theme` to flash the status bar early if there are failures. Consider [instafail](https://github.com/pytest-dev/pytest-instafail) to get early failures with full tracebacks.
+to your `.sublime.theme` to flash the status bar early if there are failures. [Consider [instafail](https://github.com/pytest-dev/pytest-instafail) to get early failures with full tracebacks as well.]
 
 Likewise add
 
@@ -36,20 +36,21 @@ Likewise add
 
 to get a status bar notification if we're green.
 
+You probably should also have a keybinding to show/hide the output panel quickly. See [TogglePanel](https://github.com/kaste/TogglePanel/)
 
 # Install
 
-Manually download/clone from github and put it in your Packages directory.
+As long as it's not listed, you must manually download/clone from github and put it in your Packages directory.
 
 At least **look** at the global settings. You usually have to edit the `pytest` setting to point at your py.test from your current virtualenv (the default is to run your global py.test which is usually *not* what you want). E.g.
 
-    "pytest": "~/venvs/{project_base}/bin/py.test"
+    "pytest": "~/venvs/{project_base_name}/bin/py.test"
     OR:
     "pytest": ".env\\Scripts\\py.test"
     OR even:
     "pytest": "venv/path/to/python -m pytest"
 
-The plugin will expand ${project_path}, ${project_base}, etc. as usual. It will respect your `project-settings` like:
+The plugin will expand ${project_path}, ${project_base_name}, ${file}, etc. as usual. It will respect your `project-settings` like:
 
     {
       "folders":
