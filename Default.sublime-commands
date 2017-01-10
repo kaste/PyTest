@@ -1,5 +1,8 @@
 [
-    {"caption": "PyTest: Run", "command": "pytest_run"},
-    {"caption": "PyTest: --tb=short --lf", "command": "pytest_run",
-                                    "args": {"options": "--tb=short --lf"}}
+    {"caption": "PyTest: Run", "command": "pytest_auto_run"},
+    {"caption": "PyTest: Run: All", "command": "pytest_run"},
+    {"caption": "PyTest: Run: Current file", "command": "pytest_run",
+                                  "args": {"target": "${file}"}},
+    {"caption": "PyTest: --tb=short --ff", "command": "pytest_run",
+                                    "args": {"options": "--tb=short --ff"}}
 ]
