@@ -132,6 +132,9 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
         if Settings.get('mode') != 'auto':
             return
 
+        if view.window().extract_variables()['file_extension'] != 'py':
+            return
+
         view.window().run_command("pytest_auto_run")
 
     def on_modified_async(self, view):
