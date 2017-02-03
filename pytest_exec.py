@@ -66,10 +66,8 @@ class PytestExecCommand(exec.ExecCommand):
         if xpassed:
             broadcast('pytest_xpassed')
 
-        errors = parse_output(self.output_view, Matchers[self._tb_mode])
 
         summary = ''
-
         match = re.search(r"collected (\d+) items", text)
         if match:
             summary = "Ran %s tests. " % (match.group(1))
@@ -77,10 +75,16 @@ class PytestExecCommand(exec.ExecCommand):
         last_line = view.substr(view.line(view.size() - 1))
         summary += last_line.replace('=', '')
 
+        failures = proc.exit_code() != 0
+        if failures:
+            broadcast("pytest_will_fail")
+
         broadcast('pytest_finished', {
             "summary": summary,
-            "failures": bool(errors or xpassed)
+            "failures": failures
         })
+
+        errors = parse_output(self.output_view, Matchers[self._tb_mode])
         broadcast('pytest_remember_errors', {
             "errors": errors,
         })
