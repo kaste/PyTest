@@ -48,7 +48,13 @@ class PytestExecCommand(exec.ExecCommand):
             'cmd': kw['cmd']
         })
 
-        return super(PytestExecCommand, self).run(**kw)
+
+        super(PytestExecCommand, self).run(**kw)
+
+        # output_view cannot be dumped through broadcast,
+        # so we go the ugly mile
+        from . import PyTest
+        PyTest.State['pytest_view'] = self.output_view
 
     def finish(self, proc):
         super(PytestExecCommand, self).finish(proc)

@@ -208,6 +208,19 @@ class PytestXpassed(sublime_plugin.WindowCommand):
         self.window.run_command(
             "show_panel", {"panel": "output.exec"})
 
+
+class TogglePanelCommand(sublime_plugin.WindowCommand):
+    def run(self, panel='output.exec'):
+        ap = self.window.active_panel()
+        if ap == panel:
+            self.window.run_command("hide_panel", {"panel": panel})
+        else:
+            self.window.run_command("show_panel", {"panel": panel})
+            view = State.get('pytest_view')
+            if view:
+                self.window.focus_view(view)
+
+
 class PytestStillRunning(sublime_plugin.WindowCommand):
     def run(self):
         show_status_ping()
