@@ -49,7 +49,7 @@ class PytestAutoRunCommand(sublime_plugin.WindowCommand):
 
         if modified:
             print('modified')
-            return last_target
+            return last_target or default_target
         elif red:
             print('red and not modified')
             return default_target
