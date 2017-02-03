@@ -163,7 +163,6 @@ class PytestStart(sublime_plugin.WindowCommand):
             'running': True,
             'modified': False,
             'errors': {},
-            'failures': False,
             'summary': '',
             'flashed_red': False
         })
