@@ -97,6 +97,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         args = self.make_args(kwargs)
         show_status_ping()
 
+        print("Run %s" % args['cmd'])
         self.window.run_command("pytest_exec", args)
 
         if ap != 'output.exec':
