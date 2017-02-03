@@ -106,10 +106,11 @@ class PytestExecCommand(exec.ExecCommand):
 
         # actually only relevant with instafail
         if characters.find('\n') >= 0:
-            broadcast('pytest_remember_errors', {
-                "errors": parse_output(
-                    self.output_view, Matchers[self._tb_mode]),
-            })
+            # broadcast('pytest_remember_errors', {
+            #     "errors": parse_output(
+            #         self.output_view, Matchers[self._tb_mode]),
+            # })
+            pass
         else:
             if characters in 'FX':
                 broadcast("pytest_will_fail")
