@@ -205,12 +205,6 @@ class PytestWillFail(sublime_plugin.WindowCommand):
         flash_status_bar('pytest_is_red')
 
 
-class PytestXpassed(sublime_plugin.WindowCommand):
-    def run(self):
-        self.window.run_command(
-            "show_panel", {"panel": "output.exec"})
-
-
 class TogglePanelCommand(sublime_plugin.WindowCommand):
     def run(self, panel='output.exec'):
         ap = self.window.active_panel()

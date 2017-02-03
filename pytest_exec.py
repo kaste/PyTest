@@ -62,10 +62,6 @@ class PytestExecCommand(exec.ExecCommand):
         view = self.output_view
         text = get_whole_text(view)
 
-        xpassed = re.search(r"XPASS", text)
-        if xpassed:
-            broadcast('pytest_xpassed')
-
 
         summary = ''
         match = re.search(r"collected (\d+) items", text)
