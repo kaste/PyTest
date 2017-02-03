@@ -164,7 +164,8 @@ class PytestStart(sublime_plugin.WindowCommand):
             'modified': False,
             'errors': {},
             'failures': False,
-            'summary': ''
+            'summary': '',
+            'flashed_red': False
         })
 
 
@@ -192,10 +193,10 @@ class PytestRememberErrors(sublime_plugin.WindowCommand):
 
 class PytestWillFail(sublime_plugin.WindowCommand):
     def run(self):
-        if State.get('failures', False):
+        if State.get('flashed_red') is True:
             return
 
-        State['failures'] = True
+        State['flashed_red'] = True
 
         if Settings.get('open_panel_on_failures'):
             self.window.run_command(
