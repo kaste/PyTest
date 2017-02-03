@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 
 import itertools
+import sys
 
 from . import annotator
 from . import settings
@@ -114,6 +115,9 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
 
         for key in ['pytest', 'target', 'working_dir']:
             rv[key] = sublime.expand_variables(kwargs[key], env)
+
+        if rv['target'] and sys.platform == 'win32':
+            rv['target'] = '"{}"'.format(rv['target'])
 
         return rv
 
