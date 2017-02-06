@@ -14,7 +14,7 @@ def get_trace_back_mode(cmd):
     # type: (str) -> str
     """Parses cmd and returns a trace back mode"""
 
-    match = TB_MODE.search(cmd)
+    match = TB_MODE.search(' '.join(cmd))
     return match.group(1) if match else 'auto'
 
 def broadcast(event, message=None):

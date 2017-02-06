@@ -98,7 +98,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         args = self.make_args(kwargs)
         show_status_ping()
 
-        print("Run %s" % args['cmd'])
+        print("Run %s" % ' '.join(args['cmd']))
         self.window.run_command("pytest_exec", args)
 
         if ap != 'output.exec':
@@ -116,16 +116,17 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         for key in ['pytest', 'target', 'working_dir']:
             rv[key] = sublime.expand_variables(kwargs[key], env)
 
-        if rv['target'] and sys.platform == 'win32':
-            rv['target'] = '"{}"'.format(rv['target'])
-
         return rv
 
 
     def make_args(self, kwargs):
+        options = kwargs['options']
+        if isinstance(options, str):
+            options = options.split(' ')
+
         return {
             "file_regex": kwargs['file_regex'],
-            "cmd": "{pytest} {options} {target}".format(**kwargs),
+            "cmd": [kwargs['pytest']] + options + [kwargs['target']],
             "shell": True,
             "working_dir": kwargs['working_dir'],
             "quiet": True
@@ -180,7 +181,7 @@ class PytestFinished(sublime_plugin.WindowCommand):
             'running': False
         })
 
-        sublime.status_message(summary)
+        sublime.set_timeout(lambda: sublime.status_message(summary))
         if not failures:
             flash_status_bar('pytest_is_green', 500)
 
