@@ -1,11 +1,10 @@
 
 import sublime
-import functools
 import re
 
 from collections import defaultdict
 
-
+from .matchers import Matchers
 from Default import exec
 
 
@@ -17,23 +16,6 @@ def get_trace_back_mode(cmd):
 
     match = TB_MODE.search(cmd)
     return match.group(1) if match else 'auto'
-
-def _get_matches(regex, i, j, text):
-    # type: (Regex, int, int, str) -> List[Tuple[Line, Text]]
-    return [(int(m[i]), m[j]) for m in regex.findall(text)]
-
-
-LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-LONG_TB = re.compile(r"(?:^>.*\s((?:.*?\s)*?))?(.*):(\d+):(.?)(.*)", re.M)
-SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
-                      re.M)
-
-Matchers = {
-    'line': functools.partial(_get_matches, LINE_TB, 1, 3),
-    'short': functools.partial(_get_matches, SHORT_TB, 1, 3),
-    'long': functools.partial(_get_matches, LONG_TB, 2, 0),
-    'auto': functools.partial(_get_matches, LONG_TB, 2, 0)
-}
 
 def broadcast(event, message=None):
     sublime.active_window().run_command(event, message)

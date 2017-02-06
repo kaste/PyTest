@@ -1,0 +1,3 @@
+out = """
+    "hello\test"
+"""
