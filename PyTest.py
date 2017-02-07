@@ -146,17 +146,8 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
 class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
     def run(self, edit, **kwargs):
         view = self.view
-        file = get_testfile(view.window())
-        if not file:
-            sublime.status_message('Error: Not on a test file.')
-            return
 
-        tests = []
-        for cursor in view.sel():
-            code = get_text_up_to_cursor(view, cursor)
-            test = find_test.get_test_under_cursor(code)
-            tests.append(test)
-
+        file, tests = self.collect_tests()
         if not tests:
             sublime.status_message('Error: Could not find a test nearby.')
             return
@@ -164,6 +155,29 @@ class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
         target = ["{}::{}".format(file, test) for test in tests]
 
         view.window().run_command("pytest_auto_run", {'target': target})
+
+    def is_visible(self):
+        file, tests = self.collect_tests()
+        return bool(tests)
+
+    def description(self):
+        file, tests = self.collect_tests()
+        if tests:
+            return "Run %s" % ', '.join(map(repr, tests))
+
+    def collect_tests(self):
+        view = self.view
+        file = get_testfile(view.window())
+        if not file:
+            return None, []
+
+        tests = []
+        for cursor in view.sel():
+            code = get_text_up_to_cursor(view, cursor)
+            test = find_test.get_test_under_cursor(code)
+            if test:
+                tests.append(test)
+        return file, tests
 
 
 def get_text_up_to_cursor(view, cursor):
