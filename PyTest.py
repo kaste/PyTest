@@ -122,7 +122,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
     def make_args(self, kwargs):
         options = kwargs['options']
         if isinstance(options, str):
-            options = options.split(' ')
+            options = options.strip().split(' ')
 
         return {
             "file_regex": kwargs['file_regex'],
