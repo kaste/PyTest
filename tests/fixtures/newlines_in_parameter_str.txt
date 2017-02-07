@@ -1,0 +1,50 @@
+============================= test session starts =============================
+platform win32 -- Python 3.5.1, pytest-3.0.5, py-1.4.32, pluggy-0.4.0
+rootdir: C:\Users\c-flo\AppData\Roaming\Sublime Text 3\Packages\PyTest, inifile:
+plugins: xdist-1.15.0
+collected 5 items
+
+tests\find_test_under_cursor_test.py .F
+tests\parse_auto_test.py .
+tests\find_test_under_cursor_test.py .F
+
+================================== FAILURES ===================================
+ testFailures[\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n]
+
+code = "\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n"
+
+    @pytest.mark.parametrize('code', [
+        """
+    class TestFoo:
+        def method(self):
+            print('the cursor')
+    """
+    ])
+    def testFailures(code):
+>       assert get_test_under_cursor(code) is None
+E       assert 'TestFoo::method' is None
+E        +  where 'TestFoo::method' = get_test_under_cursor("\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n")
+
+code       = "\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n"
+
+tests\find_test_under_cursor_test.py:33: AssertionError
+ testFailures[\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n]
+
+code = "\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n"
+
+    @pytest.mark.parametrize('code', [
+        """
+    class TestFoo:
+        def method(self):
+            print('the cursor')
+    """
+    ])
+    def testFailures(code):
+>       assert get_test_under_cursor(code) is None
+E       assert 'TestFoo::method' is None
+E        +  where 'TestFoo::method' = get_test_under_cursor("\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n")
+
+code       = "\nclass TestFoo:\n    def method(self):\n        print('the cursor')\n"
+
+tests\find_test_under_cursor_test.py:33: AssertionError
+===================== 2 failed, 3 passed in 0.13 seconds ======================
