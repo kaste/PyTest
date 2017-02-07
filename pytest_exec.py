@@ -42,15 +42,14 @@ class PytestExecCommand(exec.ExecCommand):
         super(PytestExecCommand, self).finish(proc)
 
         view = self.output_view
-        text = get_whole_text(view)
-
-
         summary = ''
-        match = re.search(r"collected (\d+) items", text)
-        if match:
-            summary = "Ran %s tests. " % (match.group(1))
 
         last_line = view.substr(view.line(view.size() - 1))
+        matches = re.finditer(r' ([\d]+) ', last_line)
+        if matches:
+            test_count = sum(int(m.group(1)) for m in matches)
+            summary = "Ran %s tests. " % (test_count)
+
         summary += last_line.replace('=', '')
 
         failures = proc.exit_code() != 0
