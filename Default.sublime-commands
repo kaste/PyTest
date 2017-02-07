@@ -3,6 +3,8 @@
     {"caption": "PyTest: Run: All", "command": "pytest_run"},
     {"caption": "PyTest: Run: Current file", "command": "pytest_run",
                                   "args": {"target": "${file}"}},
+    {"caption": "PyTest: Run: Test under cursor",
+                            "command": "pytest_run_test_under_cursor"},
     {"caption": "PyTest: --tb=short --ff", "command": "pytest_run",
                                     "args": {"options": "--tb=short --ff"}}
 ]
