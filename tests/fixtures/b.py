@@ -1,3 +1,0 @@
-out = """
-    "hello\test"
-"""
