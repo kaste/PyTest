@@ -262,7 +262,7 @@ class PytestWillFail(sublime_plugin.WindowCommand):
         flash_status_bar('pytest_is_red')
 
 
-class TogglePanelCommand(sublime_plugin.WindowCommand):
+class PytestTogglePanelCommand(sublime_plugin.WindowCommand):
     def run(self, panel='output.exec'):
         ap = self.window.active_panel()
         if ap == panel:
