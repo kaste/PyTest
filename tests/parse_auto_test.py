@@ -27,3 +27,4 @@ def testA():
 
     all_tracebacks = matchers.parse_long_output(content)
     assert len(all_tracebacks) == num_tracebacks
+
