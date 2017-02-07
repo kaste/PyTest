@@ -1,8 +1,8 @@
 
 import sublime
-import re
 
 from collections import defaultdict
+import re
 
 from .matchers import Matchers
 from Default import exec
