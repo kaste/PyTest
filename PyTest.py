@@ -43,46 +43,35 @@ class PytestAutoRunCommand(sublime_plugin.WindowCommand):
         modified = State.get('modified', False)
         red = State.get('failures', False)
         last_target = State.get('target')
-        default_target = self._compute_default_target()
-        default_targets_specific_file = default_target.endswith('.py')
-        if default_targets_specific_file and default_target != last_target:
+        current_test = get_testfile(self.window)
+
+        # If you switched from an implementation view into a test, or
+        # from one test to another.
+        if (current_test and
+                (not last_target or current_test not in last_target)):
             print('testfile')
-            return default_target
+            return current_test
 
         if modified:
             print('modified')
-            return last_target or default_target
+            return last_target or current_test or Settings.get('target')
         elif red:
             print('red and not modified')
-            return default_target
+            return current_test or Settings.get('target')
         else:  # green and not modified
             print('green and not modified')
             return Settings.get('target')
 
-    def _compute_default_target(self):
-        """Returns a potential target
-
-        If you're on a `.py` file return that, otherwise whatever you've
-        set as `target` in one of setting files.
-        """
-        env = self.window.extract_variables()
-        try:
-            filename = env['file_base_name']
-            if "_test" in filename or "test_" in filename:
-                return env['file']
-        except KeyError:
-            pass
-        return Settings.get('target')
-
 
 def get_testfile(window):
+    """Return filename of current view if it's a pytest file."""
     env = window.extract_variables()
     if env['file_extension'] != 'py':
         return None
 
     try:
         filename = env['file_base_name']
-        if "_test" in filename or "test_" in filename:
+        if filename.startswith('test') or filename.endswith('test'):
             return env['file']
     except KeyError:
         return None
@@ -147,10 +136,10 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             "quiet": True
         }
 
+
 class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
     def run(self, edit, **kwargs):
         view = self.view
-        print('Inside PytestRunTestUnderCursor')
         file = get_testfile(view.window())
         if not file:
             sublime.status_message('Error: Not on a test file.')
@@ -167,7 +156,6 @@ class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
             return
 
         target = "{}::{}".format(file, test)
-        print('target', target)
 
         view.window().run_command("pytest_auto_run", {'target': target})
 
