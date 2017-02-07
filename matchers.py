@@ -17,7 +17,11 @@ def parse_long_output(text):
     content = text.strip()
     # strip off summary line at the end
     content = content[:content.rfind('\n')]
-    test_cases = get_test_cases(content)
+    try:
+        test_cases = get_test_cases(content)
+    except ValueError:
+        # Fallback if we cannot parse the output
+        return get_tracebacks(content)
 
     all_tracebacks = []
     for testcase in test_cases:
