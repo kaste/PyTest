@@ -5,6 +5,7 @@ import itertools
 import subprocess
 
 from . import annotator
+from . import find_test
 from . import settings
 
 
@@ -74,6 +75,18 @@ class PytestAutoRunCommand(sublime_plugin.WindowCommand):
         return Settings.get('target')
 
 
+def get_testfile(window):
+    env = window.extract_variables()
+    if env['file_extension'] != 'py':
+        return None
+
+    try:
+        filename = env['file_base_name']
+        if "_test" in filename or "test_" in filename:
+            return env['file']
+    except KeyError:
+        return None
+
 
 class PytestRunCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
@@ -133,6 +146,30 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             "working_dir": kwargs['working_dir'],
             "quiet": True
         }
+
+class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
+    def run(self, edit, **kwargs):
+        view = self.view
+        print('Inside PytestRunTestUnderCursor')
+        file = get_testfile(view.window())
+        if not file:
+            sublime.status_message('Error: Not on a test file.')
+            return
+
+        cursor = view.sel()[0]
+        cur_line = view.line(cursor)
+        reg = sublime.Region(0, cur_line.end())
+        code = view.substr(reg)
+
+        test = find_test.get_test_under_cursor(code)
+        if not test:
+            sublime.status_message('Error: Could not find a test nearby.')
+            return
+
+        target = "{}::{}".format(file, test)
+        print('target', target)
+
+        view.window().run_command("pytest_auto_run", {'target': target})
 
 
 class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
