@@ -2,7 +2,7 @@ import sublime
 import sublime_plugin
 
 import itertools
-import sys
+import subprocess
 
 from . import annotator
 from . import settings
@@ -98,7 +98,9 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         args = self.make_args(kwargs)
         show_status_ping()
 
-        print("Run %s" % ' '.join(args['cmd']))
+        # This is not universal, but a Win32 interpretation. Seems like Python
+        # does not ship a function for this functionality. Seems strange.
+        print("Run %s" % subprocess.list2cmdline(args['cmd']))
         self.window.run_command("pytest_exec", args)
 
         if ap != 'output.exec':
