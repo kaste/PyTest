@@ -43,12 +43,15 @@ class PytestAutoRunCommand(sublime_plugin.WindowCommand):
         modified = State.get('modified', False)
         red = State.get('failures', False)
         last_target = State.get('target')
+        if last_target and not isinstance(last_target, list):
+            last_target = [last_target]
         current_test = get_testfile(self.window)
 
         # If you switched from an implementation view into a test, or
         # from one test to another.
         if (current_test and
-                (not last_target or current_test not in last_target)):
+                (not last_target or
+                 any(current_test not in lt for lt in last_target))):
             print('testfile')
             return current_test
 
@@ -127,10 +130,13 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         options = kwargs['options']
         if isinstance(options, str):
             options = options.strip().split(' ')
+        target = kwargs['target']
+        if isinstance(target, str):
+            target = [target.strip()]
 
         return {
             "file_regex": kwargs['file_regex'],
-            "cmd": [kwargs['pytest']] + options + [kwargs['target']],
+            "cmd": [kwargs['pytest']] + options + target,
             "shell": True,
             "working_dir": kwargs['working_dir'],
             "quiet": True
@@ -145,19 +151,25 @@ class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
             sublime.status_message('Error: Not on a test file.')
             return
 
-        cursor = view.sel()[0]
-        cur_line = view.line(cursor)
-        reg = sublime.Region(0, cur_line.end())
-        code = view.substr(reg)
+        tests = []
+        for cursor in view.sel():
+            code = get_text_up_to_cursor(view, cursor)
+            test = find_test.get_test_under_cursor(code)
+            tests.append(test)
 
-        test = find_test.get_test_under_cursor(code)
-        if not test:
+        if not tests:
             sublime.status_message('Error: Could not find a test nearby.')
             return
 
-        target = "{}::{}".format(file, test)
+        target = ["{}::{}".format(file, test) for test in tests]
 
         view.window().run_command("pytest_auto_run", {'target': target})
+
+
+def get_text_up_to_cursor(view, cursor):
+    cur_line = view.line(cursor)
+    reg = sublime.Region(0, cur_line.end())
+    return view.substr(reg)
 
 
 class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
