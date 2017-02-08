@@ -4,7 +4,7 @@ The plugin basically runs your tests, and annotates your files using the traceba
 
 # Common workflow
 
-The defaults: it will run your tests on save; it will not show the output panel but annotate your views on failures instead. Like so:
+The defaults: it will run your tests on save; it will not show an output panel but annotate your views on failures instead. Like so:
 
 ![annotated view showing phantom](phantom.jpg)
 
