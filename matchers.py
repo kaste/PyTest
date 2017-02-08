@@ -8,7 +8,7 @@ def _get_matches(regex, i, j, text):
 
 
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-LONG_TB = re.compile(r"(?:^>.*\n((?:.*?\n)*?))?(.*):(\d+):(.?)(.*)", re.M)
+LONG_TB = re.compile(r"(?:^>.*\n((?:.*?\n)*?))?(.*):(\d+):(.?)([\w ]*)$", re.M)
 SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
                       re.M)
 
@@ -55,7 +55,7 @@ def parse_long_output(text):
 
 
 TESTCASE_BEGIN = re.compile(
-    r'\n(?:__+ (.*) __*|(?:_+)? ([^\s]+) ?(?:_+)?)\n')
+    r'\n(?:__+ (.*) __*|(?:_+)? ([^\s]+) ?(?:_+)?| [^\s]+\[.+)\n')
 CAPTURE_GROUP = re.compile(r'-+ Captured (.+) -+')
 CULPRIT = re.compile(r'^(E.*\n)+\n')
 

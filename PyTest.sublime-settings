@@ -27,6 +27,6 @@
     "open_panel_on_failures": false,
 
 
-    "file_regex": "^(.*):([0-9]+):(.)(.*)"
+    "file_regex": "^(.*):([0-9]+):(.)([\\w ]*)$"
 
 }

@@ -1,6 +1,4 @@
 
-import pytest
-
 import os
 
 from .. import matchers
@@ -30,7 +28,18 @@ def testA():
     all_tracebacks = matchers.parse_long_output(content)
     assert len(all_tracebacks) == num_tracebacks
 
-@pytest.mark.xfail
 def testB():
     content = load_fixture('newlines_in_parameter_str.txt')
-    matchers.get_test_cases(content)
+    test_cases = matchers.get_test_cases(content)
+    assert len(test_cases) == 2
+
+    tracebacks = matchers.parse_long_output(content)
+    assert len(tracebacks) == 2
+
+def testC():
+    content = load_fixture('errors_at_teardown.txt')
+    test_cases = matchers.get_test_cases(content)
+    assert len(test_cases) == 2
+
+    tracebacks = matchers.parse_long_output(content)
+    assert len(tracebacks) == 3
