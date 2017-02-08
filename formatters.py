@@ -1,6 +1,7 @@
 
 import functools
 import html
+import re
 
 
 
@@ -12,6 +13,12 @@ def reduced_indent(level):
     if level > 4:
         level -= 4
     return indent(level)
+
+def reduced_indent2(level):
+    def dedent(t):
+        return re.sub(r'^E(\s+)', 'E' + (level - 1) * ' ', t)
+
+    return dedent
 
 def replace_leading_E(t):
     return ' ' + t[1:]
@@ -63,8 +70,8 @@ class LineTraceback:
 
 class LongTraceback:
     @classmethod
-    def formatter(cls, indentation_level=None):
-        return (escape, replace_spaces)
+    def formatter(cls, indentation_level):
+        return (reduced_indent2(indentation_level), escape, replace_spaces)
 
     @classmethod
     def format_text(cls, text, indentation_level):
