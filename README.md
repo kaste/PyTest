@@ -82,4 +82,4 @@ As long as it's not listed, you must manually download/clone from github and put
 
 - Parametrized tests are hard. We should somehow get the id of the test item and show it. Also: for parametrized tests the same test can fail multiple times; currently we just show multiple phantoms, which doesn't look good.
 - XPASSED's are hard too. When a test xpasses we don't have a traceback, so we don't have proper phantoms as well. Currently we only flash the status bar red.
-
+- For errors in the fixtures, we flash red, but do not yet annotate the test. You can still jump to the traceback via F4 etc. but it's not ideal and how it should be.
