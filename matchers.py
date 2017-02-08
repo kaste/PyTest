@@ -21,6 +21,7 @@ def parse_long_output(text):
         test_cases = get_test_cases(content)
     except ValueError:
         # Fallback if we cannot parse the output
+        print('use fallback method')
         return get_tracebacks(content)
 
     all_tracebacks = []
