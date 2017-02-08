@@ -53,7 +53,8 @@ def parse_long_output(text):
 
 
 
-TESTCASE_BEGIN = re.compile(r'\n(?:_+)? ([^\s]+) ?(?:_+)?\n')
+TESTCASE_BEGIN = re.compile(
+    r'\n(?:__+ (.*) __*|(?:_+)? ([^\s]+) ?(?:_+)?)\n')
 CAPTURE_GROUP = re.compile(r'-+ Captured (.+) -+')
 CULPRIT = re.compile(r'^(E.*\n)+\n')
 
