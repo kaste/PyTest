@@ -74,6 +74,11 @@ def get_testfile(window):
 
     try:
         filename = env['file_base_name']
+        # It still might be better to search for `test_` and `_test`
+        # respectively. Dunno. At least `conftest.py` is not a test file
+        # but a pytest plugin.
+        if filename == 'conftest':
+            return None
         if filename.startswith('test') or filename.endswith('test'):
             return env['file']
     except KeyError:
