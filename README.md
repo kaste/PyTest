@@ -45,7 +45,7 @@ You __really__ should add
         "layer0.tint": [155, 7, 8], // -RED
     },
 
-to your `.sublime.theme` to flash the status bar early if there are failures.
+to your `.sublime-theme` to flash the status bar early if there are failures.
 
 Likewise add
 
@@ -61,7 +61,7 @@ Likewise add
         "color": [19, 21, 32],
     },
 
-to get a status bar notification if we're green.
+to get a status bar notification if we're green. Add these styles *at the end* of your theme file.
 
 You probably should also have a keybinding to show/hide the output panel quickly.
 
