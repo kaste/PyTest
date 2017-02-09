@@ -14,7 +14,7 @@ def load_fixture(name):
 
 
 def _general_match(text):
-    return matchers._get_matches(matchers.LONG_TB, 2, 0, text)
+    return matchers._get_matches(matchers.LONG_TB, 1, 2, 0, text)
 
 def testA():
     # num_failures = 3
@@ -22,7 +22,7 @@ def testA():
     content = load_fixture('auto.txt')
 
     # _general_match as a safety check here
-    matches = _general_match(content)
+    matches = matchers.get_tracebacks(content)
     assert len(matches) == num_tracebacks
 
     all_tracebacks = matchers.parse_long_output(content)

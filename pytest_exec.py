@@ -2,6 +2,8 @@
 import sublime
 
 from collections import defaultdict
+import functools
+import os
 import re
 
 from .matchers import Matchers
@@ -117,15 +119,12 @@ def parse_output(view, get_matches):
     text = get_whole_text(view)
     matches = get_matches(text)
 
-    # We still do the default regex search too bc it gets the
-    # filename correct
-    errs = view.find_all_results_with_text()
-    assert len(matches) == len(errs)
+    base_dir = view.settings().get('result_base_dir')
+    fullname = functools.partial(os.path.join, base_dir)
 
-    files = (file for (file, _, _, _) in errs)
     errs_by_file = defaultdict(list)
-    for file, (line, text) in zip(files, matches):
-        errs_by_file[file].append((line, text))
+    for file, line, text in matches:
+        errs_by_file[fullname(file)].append((line, text))
 
     return errs_by_file
 

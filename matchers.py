@@ -2,9 +2,9 @@
 import functools
 import re
 
-def _get_matches(regex, i, j, text):
+def _get_matches(regex, i, j, k, text):
     # type: (Regex, int, int, str) -> List[Tuple[Line, Text]]
-    return [(int(m[i]), m[j]) for m in regex.findall(text)]
+    return [(m[i], int(m[j]), m[k]) for m in regex.findall(text)]
 
 
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
@@ -36,18 +36,19 @@ def parse_long_output(text):
         #  t.i. on the failed test case phantom.
         if len(tracebacks) > 1:
             head = tracebacks[0]
-            end = tracebacks[-1][1]
+            end = tracebacks[-1]
 
-            culprit = get_culprit(end)
+            culprit = get_culprit(end[2])
             if culprit:
-                tracebacks[0] = (head[0], culprit + head[1])
+                tracebacks[0] = (head[0], head[1], culprit + head[2])
 
         # Very important! If pytest captured some stdout (etc.) we want to
         # see it on the first phantom as well
         if captured_text:
             _, capture = captured_text
             head = tracebacks[0]
-            tracebacks[0] = (head[0], head[1] + '--- Captured ---' + capture)
+            tracebacks[0] = (
+                head[0], head[1], head[2] + '\n------ Output ------' + capture)
 
         all_tracebacks.extend(tracebacks)
 
@@ -78,7 +79,7 @@ def split_capture_group(testcase):
         return (splitted[0], None)
 
 def get_tracebacks(traceback_text):
-    return _get_matches(LONG_TB, 2, 0, traceback_text)
+    return _get_matches(LONG_TB, 1, 2, 0, traceback_text)
 
 def get_culprit(text):
     match = CULPRIT.match(text)
@@ -89,8 +90,8 @@ def get_culprit(text):
 
 
 Matchers = {
-    'line': functools.partial(_get_matches, LINE_TB, 1, 3),
-    'short': functools.partial(_get_matches, SHORT_TB, 1, 3),
+    'line': functools.partial(_get_matches, LINE_TB, 0, 1, 3),
+    'short': functools.partial(_get_matches, SHORT_TB, 0, 1, 3),
     'long': parse_long_output,
     'auto': parse_long_output
 }
