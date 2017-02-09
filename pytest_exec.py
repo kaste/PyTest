@@ -44,9 +44,10 @@ class PytestExecCommand(exec.ExecCommand):
         super(PytestExecCommand, self).finish(proc)
 
         view = self.output_view
+        output = get_whole_text(view).strip()
+        last_line = output[output.rfind('\n'):]
         summary = ''
 
-        last_line = view.substr(view.line(view.size() - 1))
         matches = re.finditer(r' ([\d]+) ', last_line)
         if matches:
             test_count = sum(int(m.group(1)) for m in matches)
@@ -63,9 +64,10 @@ class PytestExecCommand(exec.ExecCommand):
             "failures": failures
         })
 
+        base_dir = view.settings().get('result_base_dir')
         sublime.set_timeout_async(
             functools.partial(
-                parse_output, self.output_view, Matchers[self._tb_mode]))
+                parse_output, output, base_dir, Matchers[self._tb_mode]))
 
     def service_text_queue(self):
         self.text_queue_lock.acquire()
@@ -112,13 +114,10 @@ def get_whole_text(view):
 
 
 
-def parse_output(view, get_matches):
-    # type: (View, Callable) -> Dict[Filename, List[Tuple[Line, Text]]]
+def parse_output(text, base_dir, get_matches):
+    # type: (str, str, Callable) -> Dict[Filename, List[Tuple[Line, Text]]]
 
-    text = get_whole_text(view)
     matches = get_matches(text)
-
-    base_dir = view.settings().get('result_base_dir')
     fullname = functools.partial(os.path.join, base_dir)
 
     errs_by_file = defaultdict(list)
