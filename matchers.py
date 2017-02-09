@@ -8,9 +8,10 @@ def _get_matches(regex, i, j, text):
 
 
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
-LONG_TB = re.compile(r"(?:^>.*\n((?:.*?\n)*?))?(.*):(\d+):(.?)([\w ]*)$", re.M)
-SHORT_TB = re.compile(r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)",
-                      re.M)
+LONG_TB = re.compile(
+    r"(?:^>.*\n((?:.*?\n)*?))?\n(.*):(\d+):(.?)([\w ]*)$", re.M)
+SHORT_TB = re.compile(
+    r"^(.*):([0-9]+):(.)(?:.*)\n(?:\s{4}.+)+\n((?:E.+\n)*)", re.M)
 
 
 def parse_long_output(text):
