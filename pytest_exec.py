@@ -63,10 +63,9 @@ class PytestExecCommand(exec.ExecCommand):
             "failures": failures
         })
 
-        errors = parse_output(self.output_view, Matchers[self._tb_mode])
-        broadcast('pytest_remember_errors', {
-            "errors": errors,
-        })
+        sublime.set_timeout_async(
+            functools.partial(
+                parse_output, self.output_view, Matchers[self._tb_mode]))
 
     def service_text_queue(self):
         self.text_queue_lock.acquire()
@@ -126,6 +125,8 @@ def parse_output(view, get_matches):
     for file, line, text in matches:
         errs_by_file[fullname(file)].append((line, text))
 
-    return errs_by_file
+    broadcast('pytest_remember_errors', {
+        "errors": errs_by_file,
+    })
 
 
