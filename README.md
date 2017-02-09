@@ -61,9 +61,9 @@ Likewise add
         "color": [19, 21, 32],
     },
 
-to get a status bar notification if we're green. Add these styles *at the end* of your theme file.
+to get a status bar notification if we're green. Add these styles *at the end* of your theme file, at least they must come *after* the default `status_bar` styles because these styles are generally applied top-down. Read more about how to customize a theme [here](https://github.com/buymeasoda/soda-theme/wiki/Theme-customisation#customisation-setup).
 
-You probably should also have a keybinding to show/hide the output panel quickly.
+You probably should also have a keybinding to show/hide the output panel quickly. You could use [TogglePanel](https://github.com/kaste/TogglePanel) as well, but this one also brings the keyboard focus to the panel.
 
     { "keys": ["ctrl+'"], "command": "pytest_toggle_panel" },
 
