@@ -143,16 +143,22 @@ def parse_result(base_dir, parse_traceback):
 
         failure = tc.find('failure')
         if failure is not None:
-            f_tracebacks = parse_traceback(failure.text)
+            if 'XPASS' in failure.attrib['message']:
+                synthetic_traceback = matchers.Traceback(
+                    tc.attrib['file'], int(tc.attrib['line']) + 1,
+                    failure.attrib['message'])
+                tracebacks.append(synthetic_traceback)
+            else:
+                f_tracebacks = parse_traceback(failure.text)
 
-            # For long tracebacks, we place the culprit right at the top which
-            # should be the failing test
-            if len(f_tracebacks) > 1:
-                culprit = failure.attrib['message']
-                head = f_tracebacks[0]
-                f_tracebacks[0] = head._replace(
-                    text='E   ' + culprit + '\n' + head.text)
-            tracebacks.extend(f_tracebacks)
+                # For long tracebacks, we place the culprit right at the top
+                # which should be the failing test
+                if len(f_tracebacks) > 1:
+                    culprit = failure.attrib['message']
+                    head = f_tracebacks[0]
+                    f_tracebacks[0] = head._replace(
+                        text='E   ' + culprit + '\n' + head.text)
+                tracebacks.extend(f_tracebacks)
 
         error = tc.find('error')
         if error is not None:
