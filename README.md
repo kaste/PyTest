@@ -75,7 +75,12 @@ But that command is also available via the context menu.
 
 # Install
 
-As long as it's not listed, you must manually download/clone from github and put it in your Packages directory.
+As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory.
+
+Or you go fancy, and add this repo to `Package Control`.
+
+1. Open up the command palette (`ctrl+shift+p`), and find `Package Control: Add Repository`. Then enter the URL of this repo: `https://github.com/kaste/PyTest` in the input field.
+2. Open up the command palette again and find `Package Control: Install Package`, and just search for `PyTest`. (just a normal install)
 
 
 # TODO
