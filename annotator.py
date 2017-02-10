@@ -91,15 +91,20 @@ class Annotator:
             indentation = get_indentation_at(view, pt)
             text = formatter.format_text(text, indentation)
 
-            focus_link = (' <a href="focus:{}">focus test</a>'.format(testcase)
-                          if show_focus_links and testcase else '')
-            run_focused_test = functools.partial(
-                view.window().run_command,
-                "pytest_auto_run", {'target': testcase})
-            on_navigate = lambda: lambda s: run_focused_test()
+            if show_focus_links and testcase:
+                focus_link = (
+                    ' <a href="focus:{}">focus test</a>'.format(testcase))
 
-            lines = text.split('<br />')
-            text = '<br />'.join([lines[0] + focus_link] + lines[1:])
+                run_focused_test = functools.partial(
+                    view.window().run_command,
+                    "pytest_auto_run", {'target': testcase})
+                on_navigate = lambda: lambda url: run_focused_test()
+
+                lines = text.split('<br />')
+                text = '<br />'.join([lines[0] + focus_link] + lines[1:])
+            else:
+                on_navigate = lambda: None
+
             phantoms.append(sublime.Phantom(
                 sublime.Region(pt, view.line(pt).b),
                 ('<body id=inline-error>' + STYLESHEET +
