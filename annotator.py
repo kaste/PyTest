@@ -36,6 +36,8 @@ REGIONS_MARKER = 'PyTestRunner'
 REGIONS_STYLE = 'markup.deleted.diff'
 REGIONS_ICON = 'bookmark'
 
+PHANTOMS_MARKER = 'PyTestRunner'
+
 class Annotator:
     def __init__(self):
         self._last_errors = None
@@ -118,7 +120,7 @@ class Annotator:
 
         buffer_id = view.buffer_id()
         if buffer_id not in self._phantom_sets_by_buffer:
-            phantom_set = sublime.PhantomSet(view, "exec")
+            phantom_set = sublime.PhantomSet(view, PHANTOMS_MARKER)
             self._phantom_sets_by_buffer[buffer_id] = phantom_set
         else:
             phantom_set = self._phantom_sets_by_buffer[buffer_id]
