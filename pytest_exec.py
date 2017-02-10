@@ -29,6 +29,7 @@ class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
         mode = self._tb_mode = get_trace_back_mode(kw['cmd'])
 
+        # For the line mode, we don't get useful reports at all
         if mode != 'line':
             kw['cmd'] = kw['cmd'] + ['--junit-xml={}'.format(REPORT_FILE)]
 
@@ -71,6 +72,8 @@ class PytestExecCommand(exec.ExecCommand):
 
         base_dir = view.settings().get('result_base_dir')
 
+        # For the 'line' go with output regex parsing bc the reporter
+        # isn't useful at all.
         if self._tb_mode == 'line':
             sublime.set_timeout_async(
                 functools.partial(
