@@ -1,10 +1,15 @@
 
+from collections import namedtuple
 import functools
 import re
 
+
+Traceback = namedtuple('Traceback', 'file line text')
+
+
 def _get_matches(regex, i, j, k, text):
-    # type: (Regex, int, int, str) -> List[Tuple[Line, Text]]
-    return [(m[i], int(m[j]), m[k]) for m in regex.findall(text)]
+    # type: (Regex, int, int, str) -> List[Tuple[Filename, Line, Text]]
+    return [Traceback(m[i], int(m[j]), m[k]) for m in regex.findall(text)]
 
 
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)
@@ -38,17 +43,17 @@ def parse_long_output(text):
             head = tracebacks[0]
             end = tracebacks[-1]
 
-            culprit = get_culprit(end[2])
+            culprit = get_culprit(end.text)
             if culprit:
-                tracebacks[0] = (head[0], head[1], culprit + head[2])
+                tracebacks[0] = head._replace(text=culprit + head.text)
 
         # Very important! If pytest captured some stdout (etc.) we want to
         # see it on the first phantom as well
         if captured_text:
             _, capture = captured_text
             head = tracebacks[0]
-            tracebacks[0] = (
-                head[0], head[1], head[2] + '\n------ Output ------' + capture)
+            tracebacks[0] = head._replace(
+                text=head.text + '\n------ Output ------' + capture)
 
         all_tracebacks.extend(tracebacks)
 
