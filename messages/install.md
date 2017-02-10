@@ -1,11 +1,11 @@
-You've just installed PyTest. That's ok, to get it working though you should read the README at the repo home https://github.com/kaste/PyTest
+You've just installed PyTest. That's awesome, to get it working though you should read the full [README](https://github.com/kaste/PyTest).
 
 
-Please look at the settings: Preferences > Package Settings > PyTest Runner
+Please look at the settings: `Preferences > Package Settings > PyTest Runner`.
 
-Try some commands: ctrl+shift+P PyTest
+Try some commands! Open up the command palette (`ctrl+shift+P`) and start typing `PyTest`.
 
-You __really__ should add the following tweaks to your theme file:
+You __really__ should add the following tweaks to your *theme* file:
 
     {
         "class": "status_bar",
