@@ -23,9 +23,14 @@ def broadcast(event, message=None):
     sublime.active_window().run_command(event, message)
 
 
+REPORT_FILE = os.path.join(os.path.dirname(__file__), 'last-run.xml')
+
 class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
         mode = self._tb_mode = get_trace_back_mode(kw['cmd'])
+
+        if mode != 'line':
+            kw['cmd'] = kw['cmd'] + ['--junit-xml={}'.format(REPORT_FILE)]
 
         broadcast('pytest_start', {
             'mode': mode,
@@ -65,9 +70,15 @@ class PytestExecCommand(exec.ExecCommand):
         })
 
         base_dir = view.settings().get('result_base_dir')
-        sublime.set_timeout_async(
-            functools.partial(
-                parse_output, output, base_dir, Matchers[self._tb_mode]))
+
+        if self._tb_mode == 'line':
+            sublime.set_timeout_async(
+                functools.partial(
+                    parse_output, output, base_dir, Matchers[self._tb_mode]))
+        else:
+            sublime.set_timeout_async(
+                functools.partial(
+                    parse_result, base_dir, Matchers[self._tb_mode]))
 
     def service_text_queue(self):
         self.text_queue_lock.acquire()
@@ -111,6 +122,60 @@ def get_whole_text(view):
 
     reg = sublime.Region(0, view.size())
     return view.substr(reg)
+
+
+
+def parse_result(base_dir, parse_traceback):
+    from lxml import etree
+    from . import matchers
+
+    fullname = functools.partial(os.path.join, base_dir)
+
+    tree = etree.parse(REPORT_FILE)
+    testcases = tree.xpath('/testsuite/testcase[failure or error]')
+
+    all_tracebacks = []
+    for tc in testcases:
+        tracebacks = []
+
+        failure = tc.find('failure')
+        if failure is not None:
+            f_tracebacks = parse_traceback(failure.text)
+
+            # For long tracebacks, we place the culprit right at the top which
+            # should be the failing test
+            if len(f_tracebacks) > 1:
+                culprit = failure.attrib['message']
+                head = f_tracebacks[0]
+                f_tracebacks[0] = head._replace(
+                    text='E   ' + culprit + '\n' + head.text)
+            tracebacks.extend(f_tracebacks)
+
+        error = tc.find('error')
+        if error is not None:
+            # For errors in the fixtures ("at teardown" etc.), we place a
+            # synthetic marker at the failing test
+            synthetic_traceback = matchers.Traceback(
+                tc.attrib['file'], int(tc.attrib['line']) + 1,
+                error.attrib['message'])
+            tracebacks.append(synthetic_traceback)
+            tracebacks.extend(parse_traceback(error.text))
+
+        system_out = tc.find('system-out')
+        if system_out is not None:
+            head = tracebacks[0]
+            tracebacks[0] = head._replace(
+                text=head.text + '\n------ Output ------\n' + system_out.text)
+
+        all_tracebacks.extend(tracebacks)
+
+    errs_by_file = defaultdict(list)
+    for file, line, text in all_tracebacks:
+        errs_by_file[fullname(file)].append((line, text))
+
+    broadcast('pytest_remember_errors', {
+        "errors": errs_by_file,
+    })
 
 
 

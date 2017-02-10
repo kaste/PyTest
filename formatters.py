@@ -50,7 +50,7 @@ def _format_text(formatter, text):
 class ShortTraceback:
     @classmethod
     def formatter(cls, indentation_level):
-        return (replace_leading_E, reduced_indent(indentation_level), escape,
+        return (reduced_indent2(indentation_level), escape,
                 replace_spaces)
 
     @classmethod
