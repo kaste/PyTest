@@ -32,6 +32,9 @@ STYLESHEET = '''
     </style>
 '''
 
+REGIONS_MARKER = 'PyTestRunner'
+REGIONS_STYLE = 'markup.deleted.diff'
+REGIONS_ICON = 'bookmark'
 
 class Annotator:
     def __init__(self):
@@ -56,7 +59,7 @@ class Annotator:
             # immediately.
             if running:
                 return
-            view.erase_regions('PyTestRunner')
+            view.erase_regions(REGIONS_MARKER)
             self._drawn.add(buffer_id)
             return
 
@@ -68,10 +71,9 @@ class Annotator:
         regions = [view.full_line(view.text_point(tbck['line'] - 1, 0))
                    for tbck in errs]
 
-        view.erase_regions('PyTestRunner')
-        view.add_regions('PyTestRunner', regions,
-                         'markup.deleted.diff',
-                         'bookmark',
+        view.add_regions(REGIONS_MARKER, regions,
+                         REGIONS_STYLE,
+                         REGIONS_ICON,
                          sublime.DRAW_OUTLINED)
 
     def _draw_phantoms(self, view, errs, mode='auto'):
