@@ -83,7 +83,3 @@ Or you go fancy, and add this repo to `Package Control`.
 2. Open up the command palette again and find `Package Control: Install Package`, and just search for `PyTest`. (just a normal install)
 
 
-# TODO
-
-- Parametrized tests are hard. We should somehow get the id of the test item and show it. Also: for parametrized tests the same test can fail multiple times; currently we just show multiple phantoms, which doesn't look good.
-
