@@ -28,3 +28,12 @@ Matchers = {
 }
 
 
+CULPRIT = re.compile(r'^((?:E.+\n?)+)', re.M)
+
+def get_culprit(text):
+    match = CULPRIT.match(text)
+    if match:
+        return match.group(0)
+    else:
+        return ''
+

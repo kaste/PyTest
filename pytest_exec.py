@@ -156,13 +156,23 @@ def parse_result(base_dir, parse_traceback):
 
         error = tc.find('error')
         if error is not None:
+            e_tracebacks = parse_traceback(error.text)
+            end = e_tracebacks[-1]
+            culprit = matchers.get_culprit(end.text)
+
+            if culprit and len(e_tracebacks) > 1:
+                head = e_tracebacks[0]
+                e_tracebacks[0] = head._replace(
+                    text='E   ' + culprit + '\n' + head.text)
+
             # For errors in the fixtures ("at teardown" etc.), we place a
             # synthetic marker at the failing test
             synthetic_traceback = matchers.Traceback(
                 tc.attrib['file'], int(tc.attrib['line']) + 1,
-                error.attrib['message'])
+                error.attrib['message'] + ':\n' + culprit)
+
             tracebacks.append(synthetic_traceback)
-            tracebacks.extend(parse_traceback(error.text))
+            tracebacks.extend(e_tracebacks)
 
         system_out = tc.find('system-out')
         if system_out is not None:
