@@ -1,15 +1,12 @@
 
-from collections import namedtuple
 import functools
 import re
 
 
-Traceback = namedtuple('Traceback', 'file line text')
-
-
 def _get_matches(regex, i, j, k, text):
-    # type: (Regex, int, int, str) -> List[Tuple[Filename, Line, Text]]
-    return [Traceback(m[i], int(m[j]), m[k]) for m in regex.findall(text)]
+    # type: (Regex, int, int, int, str) -> List[Dict]
+    return [{'file': m[i], 'line': int(m[j]), 'text': m[k]}
+            for m in regex.findall(text)]
 
 
 LINE_TB = re.compile(r"^(.*):([0-9]+):(.)(.*)", re.M)

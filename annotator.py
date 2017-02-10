@@ -52,8 +52,8 @@ class Annotator:
         self._drawn.add(buffer_id)
 
     def _draw_regions(self, view, errs):
-        regions = [view.full_line(view.text_point(line - 1, 0))
-                   for (line, _) in errs]
+        regions = [view.full_line(view.text_point(tbck['line'] - 1, 0))
+                   for tbck in errs]
 
         view.erase_regions('PyTestRunner')
         view.add_regions('PyTestRunner', regions,
@@ -65,7 +65,10 @@ class Annotator:
         formatter = formatters.TB_MODES[mode]
         phantoms = []
 
-        for line, text in errs:
+        for tbck in errs:
+            line = tbck['line']
+            text = tbck['text']
+
             pt = view.text_point(line - 1, 0)
             indentation = get_indentation_at(view, pt)
 
@@ -103,19 +106,13 @@ class Annotator:
 
 
 def get_errors_for_view(view, errors_by_view):
-    # type: (View, Dict[Filename, Errors]) -> Optional(Errors)
-    """Return errors for a given view or None
-
-    The problem we're facing here is that the filenames are cygwin
-    like paths; so although errors_by_view already is a dict keyed
-    by filename we cannot just use errors_by_view[view.file_name()],
-    but must let sublime do the hard work by utilizing find_open_file()
-    """
+    # type: (View, Dict[Filename, Tracebacks]) -> Optional[Tracebacks]
+    """Return errors for a given view or None."""
 
     window = view.window()
-    for file, errs in errors_by_view.items():
+    for file, tracebacks in errors_by_view.items():
         if view == window.find_open_file(file):
-            return errs
+            return tracebacks
 
 
 def get_indentation_at(view, pt):

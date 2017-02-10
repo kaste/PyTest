@@ -144,9 +144,11 @@ def parse_result(base_dir, parse_traceback):
         failure = tc.find('failure')
         if failure is not None:
             if 'XPASS' in failure.attrib['message']:
-                synthetic_traceback = matchers.Traceback(
-                    tc.attrib['file'], int(tc.attrib['line']) + 1,
-                    failure.attrib['message'])
+                synthetic_traceback = {
+                    'file': tc.attrib['file'],
+                    'line': int(tc.attrib['line']) + 1,
+                    'text': failure.attrib['message']
+                }
                 tracebacks.append(synthetic_traceback)
             else:
                 f_tracebacks = parse_traceback(failure.text)
@@ -156,26 +158,26 @@ def parse_result(base_dir, parse_traceback):
                 if len(f_tracebacks) > 1:
                     culprit = failure.attrib['message']
                     head = f_tracebacks[0]
-                    f_tracebacks[0] = head._replace(
-                        text='E   ' + culprit + '\n' + head.text)
+                    head['text'] = 'E   ' + culprit + '\n' + head['text']
                 tracebacks.extend(f_tracebacks)
 
         error = tc.find('error')
         if error is not None:
             e_tracebacks = parse_traceback(error.text)
             end = e_tracebacks[-1]
-            culprit = matchers.get_culprit(end.text)
+            culprit = matchers.get_culprit(end['text'])
 
             if culprit and len(e_tracebacks) > 1:
                 head = e_tracebacks[0]
-                e_tracebacks[0] = head._replace(
-                    text='E   ' + culprit + '\n' + head.text)
+                head['text'] = 'E   ' + culprit + '\n' + head['text']
 
             # For errors in the fixtures ("at teardown" etc.), we place a
             # synthetic marker at the failing test
-            synthetic_traceback = matchers.Traceback(
-                tc.attrib['file'], int(tc.attrib['line']) + 1,
-                error.attrib['message'] + ':\n' + culprit)
+            synthetic_traceback = {
+                'file': tc.attrib['file'],
+                'line': int(tc.attrib['line']) + 1,
+                'text': error.attrib['message'] + ':\n' + culprit
+            }
 
             tracebacks.append(synthetic_traceback)
             tracebacks.extend(e_tracebacks)
@@ -183,14 +185,14 @@ def parse_result(base_dir, parse_traceback):
         system_out = tc.find('system-out')
         if system_out is not None:
             head = tracebacks[0]
-            tracebacks[0] = head._replace(
-                text=head.text + '\n------ Output ------\n' + system_out.text)
+            head['text'] = (
+                head['text'] + '\n------ Output ------\n' + system_out.text)
 
         all_tracebacks.extend(tracebacks)
 
     errs_by_file = defaultdict(list)
-    for file, line, text in all_tracebacks:
-        errs_by_file[fullname(file)].append((line, text))
+    for tbck in all_tracebacks:
+        errs_by_file[fullname(tbck['file'])].append(tbck)
 
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
@@ -205,8 +207,8 @@ def parse_output(text, base_dir, get_matches):
     fullname = functools.partial(os.path.join, base_dir)
 
     errs_by_file = defaultdict(list)
-    for file, line, text in matches:
-        errs_by_file[fullname(file)].append((line, text))
+    for tbck in matches:
+        errs_by_file[fullname(tbck)].append(tbck)
 
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
