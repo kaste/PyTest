@@ -1,6 +1,8 @@
 
 import sublime
 
+import functools
+
 from . import formatters
 
 
@@ -15,6 +17,17 @@ STYLESHEET = '''
 
         span.message {
             padding-right: 0.7rem;
+        }
+        a {
+            position: relative;
+            left: 1rem;
+            top: -1px;
+            background-color: var(--background);
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--foreground);
+            text-decoration: none;
         }
     </style>
 '''
@@ -65,17 +78,28 @@ class Annotator:
         formatter = formatters.TB_MODES[mode]
         phantoms = []
 
+        show_focus_links = len(errs) > 1
         for tbck in errs:
             line = tbck['line']
             text = tbck['text']
-
-            pt = view.text_point(line - 1, 0)
-            indentation = get_indentation_at(view, pt)
+            testcase = tbck.get('testcase')
 
             if text == '':
                 continue
+
+            pt = view.text_point(line - 1, 0)
+            indentation = get_indentation_at(view, pt)
             text = formatter.format_text(text, indentation)
 
+            focus_link = (' <a href="focus:{}">focus test</a>'.format(testcase)
+                          if show_focus_links and testcase else '')
+            run_focused_test = functools.partial(
+                view.window().run_command,
+                "pytest_auto_run", {'target': testcase})
+            on_navigate = lambda: lambda s: run_focused_test()
+
+            lines = text.split('<br />')
+            text = '<br />'.join([lines[0] + focus_link] + lines[1:])
             phantoms.append(sublime.Phantom(
                 sublime.Region(pt, view.line(pt).b),
                 ('<body id=inline-error>' + STYLESHEET +
@@ -83,7 +107,7 @@ class Annotator:
                     '<span class="message">' + text + '</span>' +
                     '</div>' +
                     '</body>'),
-                sublime.LAYOUT_BELOW))
+                sublime.LAYOUT_BELOW, on_navigate()))
 
         buffer_id = view.buffer_id()
         if buffer_id not in self._phantom_sets_by_buffer:

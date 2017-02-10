@@ -3,9 +3,10 @@ import functools
 import re
 
 
-def _get_matches(regex, i, j, k, text):
+def _get_matches(regex, i, j, k, text, make_abs, testcase=''):
     # type: (Regex, int, int, int, str) -> List[Dict]
-    return [{'file': m[i], 'line': int(m[j]), 'text': m[k]}
+    return [{'file': make_abs(m[i]), 'line': int(m[j]), 'text': m[k],
+             'testcase': testcase}
             for m in regex.findall(text)]
 
 

@@ -140,18 +140,21 @@ def parse_result(base_dir, parse_traceback):
     all_tracebacks = []
     for tc in testcases:
         tracebacks = []
+        file = fullname(tc.attrib['file'])
+        testcase = get_testcase(tc, file)
 
         failure = tc.find('failure')
         if failure is not None:
             if 'XPASS' in failure.attrib['message']:
                 synthetic_traceback = {
-                    'file': tc.attrib['file'],
+                    'file': file,
                     'line': int(tc.attrib['line']) + 1,
                     'text': failure.attrib['message']
                 }
                 tracebacks.append(synthetic_traceback)
             else:
-                f_tracebacks = parse_traceback(failure.text)
+                f_tracebacks = parse_traceback(
+                    failure.text, fullname, testcase)
 
                 # For long tracebacks, we place the culprit right at the top
                 # which should be the failing test
@@ -163,7 +166,7 @@ def parse_result(base_dir, parse_traceback):
 
         error = tc.find('error')
         if error is not None:
-            e_tracebacks = parse_traceback(error.text)
+            e_tracebacks = parse_traceback(error.text, fullname, testcase)
             end = e_tracebacks[-1]
             culprit = matchers.get_culprit(end['text'])
 
@@ -174,7 +177,7 @@ def parse_result(base_dir, parse_traceback):
             # For errors in the fixtures ("at teardown" etc.), we place a
             # synthetic marker at the failing test
             synthetic_traceback = {
-                'file': tc.attrib['file'],
+                'file': file,
                 'line': int(tc.attrib['line']) + 1,
                 'text': error.attrib['message'] + ':\n' + culprit
             }
@@ -192,23 +195,36 @@ def parse_result(base_dir, parse_traceback):
 
     errs_by_file = defaultdict(list)
     for tbck in all_tracebacks:
-        errs_by_file[fullname(tbck['file'])].append(tbck)
+        errs_by_file[tbck['file']].append(tbck)
 
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
     })
 
 
+def get_testcase(testcase, file):
+    rel_file = testcase.attrib['file']
+    name = testcase.attrib['name']
+    classname = testcase.attrib['classname']
+
+    root, _ = os.path.splitext(rel_file)
+    dotted_filepath = root.replace(os.path.sep, '.')
+    if classname.startswith(dotted_filepath):
+        classname = classname[len(dotted_filepath) + 1:]
+        classname = classname.replace('.', '::').replace('()', '')
+        return file + '::' + classname + name
+    return ''
+
 
 def parse_output(text, base_dir, get_matches):
     # type: (str, str, Callable) -> Dict[Filename, List[Tuple[Line, Text]]]
 
-    matches = get_matches(text)
     fullname = functools.partial(os.path.join, base_dir)
+    matches = get_matches(text, fullname)
 
     errs_by_file = defaultdict(list)
     for tbck in matches:
-        errs_by_file[fullname(tbck)].append(tbck)
+        errs_by_file[tbck['file']].append(tbck)
 
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
