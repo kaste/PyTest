@@ -13,7 +13,7 @@ STYLESHEET = '''
             position: relative;
         }
 
-        div.error span.message {
+        span.message {
             padding-right: 0.7rem;
         }
     </style>
