@@ -1,8 +1,6 @@
 
 import sublime
 
-import functools
-
 from . import formatters
 
 
@@ -99,15 +97,8 @@ class Annotator:
                 focus_link = (
                     ' <a href="focus:{}">focus test</a>'.format(testcase))
 
-                run_focused_test = functools.partial(
-                    view.window().run_command,
-                    "pytest_auto_run", {'target': testcase})
-                on_navigate = lambda: lambda url: run_focused_test()
-
                 lines = text.split('<br />')
                 text = '<br />'.join([lines[0] + focus_link] + lines[1:])
-            else:
-                on_navigate = lambda: None
 
             phantoms.append(sublime.Phantom(
                 sublime.Region(pt, view.line(pt).b),
@@ -116,7 +107,7 @@ class Annotator:
                     '<span class="message">' + text + '</span>' +
                     '</div>' +
                     '</body>'),
-                sublime.LAYOUT_BELOW, on_navigate()))
+                sublime.LAYOUT_BELOW, self._on_navigate))
 
         buffer_id = view.buffer_id()
         if buffer_id not in self._phantom_sets_by_buffer:
@@ -126,6 +117,12 @@ class Annotator:
             phantom_set = self._phantom_sets_by_buffer[buffer_id]
 
         phantom_set.update(phantoms)
+
+    def _on_navigate(self, url):
+        # split off 'focus:'
+        testcase = url[6:]
+        sublime.active_window().run_command(
+            "pytest_auto_run", {'target': testcase})
 
 
     def annotate_visible_views(self, **kwargs):

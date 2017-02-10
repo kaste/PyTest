@@ -212,7 +212,7 @@ def get_testcase(testcase, file):
     if classname.startswith(dotted_filepath):
         classname = classname[len(dotted_filepath) + 1:]
         classname = classname.replace('.', '::').replace('()', '')
-        return file + '::' + classname + name
+        return file + '::' + classname + '::' + name
     return ''
 
 
