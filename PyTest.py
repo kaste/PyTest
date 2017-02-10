@@ -14,6 +14,7 @@ Settings = settings.Settings('PyTest')
 
 
 State = {}
+OUTPUT_PANEL = 'output.exec'
 
 
 class PytestAutoRunCommand(sublime_plugin.WindowCommand):
@@ -113,8 +114,8 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         print("Run %s" % subprocess.list2cmdline(args['cmd']))
         self.window.run_command("pytest_exec", args)
 
-        if ap != 'output.exec':
-            self.window.run_command("hide_panel", {"panel": "output.exec"})
+        if ap != OUTPUT_PANEL:
+            self.window.run_command("hide_panel", {"panel": OUTPUT_PANEL})
 
     def _fill_in_defaults(self, kwargs):
         return {key: kwargs.get(key, Settings.get(key))
@@ -262,13 +263,13 @@ class PytestWillFail(sublime_plugin.WindowCommand):
 
         if Settings.get('open_panel_on_failures'):
             self.window.run_command(
-                "show_panel", {"panel": "output.exec"})
+                "show_panel", {"panel": OUTPUT_PANEL})
 
         flash_status_bar('pytest_is_red')
 
 
 class PytestTogglePanelCommand(sublime_plugin.WindowCommand):
-    def run(self, panel='output.exec'):
+    def run(self, panel=OUTPUT_PANEL):
         ap = self.window.active_panel()
         if ap == panel:
             self.window.run_command("hide_panel", {"panel": panel})
