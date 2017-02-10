@@ -81,5 +81,4 @@ As long as it's not listed, you must manually download/clone from github and put
 # TODO
 
 - Parametrized tests are hard. We should somehow get the id of the test item and show it. Also: for parametrized tests the same test can fail multiple times; currently we just show multiple phantoms, which doesn't look good.
-- XPASSED's are hard too. When a test xpasses we don't have a traceback, so we don't have proper phantoms as well. Currently we only flash the status bar red.
 
