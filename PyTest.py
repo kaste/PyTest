@@ -70,11 +70,15 @@ class PytestAutoRunCommand(sublime_plugin.WindowCommand):
 def get_testfile(window):
     """Return filename of current view if it's a pytest file."""
     env = window.extract_variables()
-    if env['file_extension'] != 'py':
-        return None
 
     try:
+        ext = env['file_extension']
         filename = env['file_base_name']
+    except KeyError:
+        return None
+    else:
+        if ext != 'py':
+            return None
         # It still might be better to search for `test_` and `_test`
         # respectively. Dunno. At least `conftest.py` is not a test file
         # but a pytest plugin.
@@ -82,8 +86,6 @@ def get_testfile(window):
             return None
         if filename.startswith('test') or filename.endswith('test'):
             return env['file']
-    except KeyError:
-        return None
 
 
 class PytestRunCommand(sublime_plugin.WindowCommand):
