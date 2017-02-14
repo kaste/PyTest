@@ -73,6 +73,8 @@ Maybe a keybinding to run only the test under the cursor(s) as well:
 
 But that command is also available via the context menu.
 
+You can disable this plugin via a command (`ctrl+shift+p` and start typing `pytest deactivate`). This setting will then be persisted in your project settings (if any).
+
 # Install
 
 As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory. You have to run `Package Control: Satisfy Dependencies` after that to pull in `lxml`.
