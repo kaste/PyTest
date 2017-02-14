@@ -23,15 +23,23 @@ def broadcast(event, message=None):
     sublime.active_window().run_command(event, message)
 
 
-REPORT_FILE = os.path.join(os.path.dirname(__file__), 'last-run.xml')
+# For now we go with one report file for all. That basically means concurrent
+# invocations are not supported and will error.
+def get_report_file():
+    path = os.path.join(sublime.cache_path(), 'PyTest')
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    return os.path.join(path, 'last-run.xml')
 
 class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
         mode = self._tb_mode = get_trace_back_mode(kw['cmd'])
 
-        # For the line mode, we don't get useful reports at all
+        # For the line mode, we don't get useful reports at all.
+        # Note that if the user already wants a xml-report, he has bad luck,
+        # bc the last `--junit-xml` wins.
         if mode != 'line':
-            kw['cmd'] = kw['cmd'] + ['--junit-xml={}'.format(REPORT_FILE)]
+            kw['cmd'] += ['--junit-xml={}'.format(get_report_file())]
 
         broadcast('pytest_start', {
             'mode': mode,
@@ -134,7 +142,7 @@ def parse_result(base_dir, parse_traceback):
 
     fullname = functools.partial(os.path.join, base_dir)
 
-    tree = etree.parse(REPORT_FILE)
+    tree = etree.parse(get_report_file())
     testcases = tree.xpath('/testsuite/testcase[failure or error]')
 
     all_tracebacks = []
