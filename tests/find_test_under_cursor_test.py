@@ -76,7 +76,13 @@ class TestBar:
 class TestFoo:
     def method(self):
         pass
-""", 'TestFoo')
+""", 'TestFoo'),
+
+    ("""
+class InstanceMethodsTest(TestBase):
+    def testStubInstancesInsteadOfClasses(self):
+        max = Dog()""",
+        'InstanceMethodsTest::testStubInstancesInsteadOfClasses'),
 ])
 def testPasses(code, wanted):
     assert get_test_under_cursor(code) == wanted
