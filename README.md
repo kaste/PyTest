@@ -75,7 +75,7 @@ But that command is also available via the context menu.
 
 # Install
 
-As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory.
+As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory. You have to run `Package Control: Satisfy Dependencies` after that to pull in `lxml`.
 
 Or you go fancy, and add this repo to `Package Control`.
 
