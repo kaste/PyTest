@@ -23,8 +23,6 @@ def broadcast(event, message=None):
     sublime.active_window().run_command(event, message)
 
 
-# For now we go with one report file for all. That basically means concurrent
-# invocations are not supported and will error.
 def get_report_file():
     path = os.path.join(sublime.cache_path(), 'PyTest')
     if not os.path.isdir(path):
