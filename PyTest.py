@@ -9,7 +9,6 @@ from . import find_test
 from . import settings
 
 
-Annotator = annotator.Annotator()
 Settings = settings.Settings('PyTest')
 
 
@@ -218,7 +217,7 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
 
 class PytestMarkCurrentViewCommand(sublime_plugin.EventListener):
     def on_activated_async(self, view):
-        Annotator.annotate(view, **State)
+        annotator.annotate(view, **State)
 
 
 class PytestStart(sublime_plugin.WindowCommand):
@@ -255,7 +254,7 @@ class PytestRememberErrors(sublime_plugin.WindowCommand):
             'phantom_sets': {},
         })
 
-        Annotator.annotate_visible_views(**State)
+        annotator.annotate_visible_views(**State)
 
 
 class PytestWillFail(sublime_plugin.WindowCommand):
