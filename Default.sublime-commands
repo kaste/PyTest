@@ -6,5 +6,7 @@
     {"caption": "PyTest: Run: Test under cursor",
                             "command": "pytest_run_test_under_cursor"},
     {"caption": "PyTest: --tb=short --ff", "command": "pytest_run",
-                                    "args": {"options": "--tb=short --ff"}}
+                                    "args": {"options": "--tb=short --ff"}},
+    {"caption": "PyTest: Deactivate for this project",
+                            "command": "pytest_deactivate"}
 ]

@@ -282,6 +282,15 @@ class PytestTogglePanelCommand(sublime_plugin.WindowCommand):
                 self.window.focus_view(view)
 
 
+class PytestDeactivate(sublime_plugin.WindowCommand):
+    def run(self):
+        data = self.window.project_data()
+        settings = data.setdefault('settings', {})
+        pytest = settings.setdefault('PyTest', {})
+        pytest['mode'] = 'manual'
+        self.window.set_project_data(data)
+
+
 class PytestStillRunning(sublime_plugin.WindowCommand):
     def run(self):
         show_status_ping()
