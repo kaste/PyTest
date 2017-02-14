@@ -82,4 +82,6 @@ Or you go fancy, and add this repo to `Package Control`.
 1. Open up the command palette (`ctrl+shift+p`), and find `Package Control: Add Repository`. Then enter the URL of this repo: `https://github.com/kaste/PyTest` in the input field.
 2. Open up the command palette again and find `Package Control: Install Package`, and just search for `PyTest`. (just a normal install)
 
+# Mandatory GIF
 
+![common workflow](fanNq0wlXn.gif)
