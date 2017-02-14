@@ -37,19 +37,12 @@ REGIONS_ICON = 'bookmark'
 PHANTOMS_MARKER = 'PyTestRunner'
 
 class Annotator:
-    def __init__(self):
-        self._last_errors = None
 
     def annotate(self, view, errors={}, mode='auto', running=False,
-                 **_):
-        if errors != self._last_errors:
-            # reset 'local' state
-            self._drawn = set()
-            self._phantom_sets_by_buffer = {}
-            self._last_errors = errors
+                 drawn_views=set(), phantom_sets={}, **kwargs_):
 
         buffer_id = view.buffer_id()
-        if buffer_id in self._drawn:
+        if buffer_id in drawn_views:
             return
 
         errs = get_errors_for_view(view, errors)
@@ -60,12 +53,12 @@ class Annotator:
             if running:
                 return
             view.erase_regions(REGIONS_MARKER)
-            self._drawn.add(buffer_id)
+            drawn_views.add(buffer_id)
             return
 
         self._draw_regions(view, errs)
-        self._draw_phantoms(view, errs, mode)
-        self._drawn.add(buffer_id)
+        self._draw_phantoms(view, errs, mode, phantom_sets)
+        drawn_views.add(buffer_id)
 
     def _draw_regions(self, view, errs):
         regions = [view.full_line(view.text_point(tbck['line'] - 1, 0))
@@ -76,7 +69,7 @@ class Annotator:
                          REGIONS_ICON,
                          sublime.DRAW_OUTLINED)
 
-    def _draw_phantoms(self, view, errs, mode='auto'):
+    def _draw_phantoms(self, view, errs, mode='auto', phantom_sets=set()):
         formatter = formatters.TB_MODES[mode]
         phantoms = []
 
@@ -110,11 +103,11 @@ class Annotator:
                 sublime.LAYOUT_BELOW, self._on_navigate))
 
         buffer_id = view.buffer_id()
-        if buffer_id not in self._phantom_sets_by_buffer:
+        if buffer_id not in phantom_sets:
             phantom_set = sublime.PhantomSet(view, PHANTOMS_MARKER)
-            self._phantom_sets_by_buffer[buffer_id] = phantom_set
+            phantom_sets[buffer_id] = phantom_set
         else:
-            phantom_set = self._phantom_sets_by_buffer[buffer_id]
+            phantom_set = phantom_sets[buffer_id]
 
         phantom_set.update(phantoms)
 

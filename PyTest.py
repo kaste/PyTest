@@ -250,7 +250,9 @@ class PytestFinished(sublime_plugin.WindowCommand):
 class PytestRememberErrors(sublime_plugin.WindowCommand):
     def run(self, errors):
         State.update({
-            'errors': errors
+            'errors': errors,
+            'drawn_views': set(),
+            'phantom_sets': {},
         })
 
         Annotator.annotate_visible_views(**State)
