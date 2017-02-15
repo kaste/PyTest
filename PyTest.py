@@ -7,6 +7,7 @@ import subprocess
 from . import annotator
 from . import find_test
 from . import settings
+from . import util
 
 
 Settings = settings.Settings('PyTest')
@@ -14,6 +15,11 @@ Settings = settings.Settings('PyTest')
 
 State = {}
 OUTPUT_PANEL = 'output.exec'
+
+
+def plugin_loaded():
+    if Settings.get('apply_theme_tweaks', False):
+        util.tweak_theme()
 
 
 class PytestAutoRunCommand(sublime_plugin.WindowCommand):

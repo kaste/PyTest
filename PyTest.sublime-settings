@@ -26,6 +26,9 @@
 
     "open_panel_on_failures": false,
 
+    // Set this to false, if you applied your tweaks manually, or just
+    // don't want them
+    "apply_theme_tweaks": true,
 
     "file_regex": "^(.*):([0-9]+):(.)([\\w ]*)$"
 
