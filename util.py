@@ -65,6 +65,6 @@ def tweak_theme():
     with open(theme_path, mode='w', encoding='utf-8') as f:
         f.write(tweaked_theme)
 
-    print('Done.')
+    print('Done tweaking!')
 
     # sublime.active_window().open_file(theme_path)
