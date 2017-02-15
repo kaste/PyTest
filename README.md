@@ -37,7 +37,30 @@ The plugin will expand ${project_path}, ${project_base_name}, ${file}, etc. as u
       }
     }
 
-You __really__ should add
+You probably should add a keybinding to show/hide the output panel quickly. You could use [TogglePanel](https://github.com/kaste/TogglePanel) as well, but this one also brings the keyboard focus to the panel.
+
+    { "keys": ["ctrl+'"], "command": "pytest_toggle_panel" },
+
+Maybe a keybinding to run only the test under the cursor(s) as well:
+
+    { "keys": ["ctrl+shift+'"], "command": "pytest_run_test_under_cursor"},
+
+But that command is also available via the context menu.
+
+You can disable this plugin via a command (`ctrl+shift+p` and start typing `pytest deactivate`). This setting will then be persisted in your project settings (if any).
+
+# Install
+
+As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory. You have to run `Package Control: Satisfy Dependencies` after that to pull in `lxml`.
+
+Or you go fancy, and add this repo to `Package Control`.
+
+1. Open up the command palette (`ctrl+shift+p`), and find `Package Control: Add Repository`. Then enter the URL of this repo: `https://github.com/kaste/PyTest` in the input field.
+2. Open up the command palette again and find `Package Control: Install Package`, and just search for `PyTest`. (just a normal install)
+
+# Manual Theme Tweaking
+
+The plugin tries to tweak your theme, so that you get a green/red notification after each test run. (You can disable this via the settings.) If this doesn't work out, consider a manual tweak: you __really__ should add
 
     {
         "class": "status_bar",
@@ -62,27 +85,6 @@ Likewise add
     },
 
 to get a status bar notification if we're green. Add these styles *at the end* of your theme file, at least they must come *after* the default `status_bar` styles because these styles are generally applied top-down. Read more about how to customize a theme [here](https://github.com/buymeasoda/soda-theme/wiki/Theme-customisation#customisation-setup).
-
-You probably should also have a keybinding to show/hide the output panel quickly. You could use [TogglePanel](https://github.com/kaste/TogglePanel) as well, but this one also brings the keyboard focus to the panel.
-
-    { "keys": ["ctrl+'"], "command": "pytest_toggle_panel" },
-
-Maybe a keybinding to run only the test under the cursor(s) as well:
-
-    { "keys": ["ctrl+shift+'"], "command": "pytest_run_test_under_cursor"},
-
-But that command is also available via the context menu.
-
-You can disable this plugin via a command (`ctrl+shift+p` and start typing `pytest deactivate`). This setting will then be persisted in your project settings (if any).
-
-# Install
-
-As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory. You have to run `Package Control: Satisfy Dependencies` after that to pull in `lxml`.
-
-Or you go fancy, and add this repo to `Package Control`.
-
-1. Open up the command palette (`ctrl+shift+p`), and find `Package Control: Add Repository`. Then enter the URL of this repo: `https://github.com/kaste/PyTest` in the input field.
-2. Open up the command palette again and find `Package Control: Install Package`, and just search for `PyTest`. (just a normal install)
 
 # Mandatory GIF
 
