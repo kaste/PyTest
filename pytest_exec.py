@@ -161,11 +161,13 @@ def parse_result(base_dir, parse_traceback):
             else:
                 f_tracebacks = parse_traceback(
                     failure.text, fullname, testcase)
+                end = f_tracebacks[-1]
+                culprit = (matchers.get_culprit(end['text']) or
+                           failure.attrib['message'])
 
                 # For long tracebacks, we place the culprit right at the top
                 # which should be the failing test
-                if len(f_tracebacks) > 1:
-                    culprit = failure.attrib['message']
+                if culprit and len(f_tracebacks) > 1:
                     head = f_tracebacks[0]
                     head['text'] = 'E   ' + culprit + '\n' + head['text']
                 tracebacks.extend(f_tracebacks)
