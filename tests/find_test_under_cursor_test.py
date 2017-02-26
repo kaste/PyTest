@@ -67,6 +67,11 @@ def testfn():
 """, 'testfn'),
 
     ("""
+async def testfn():
+    pass
+""", 'testfn'),
+
+    ("""
 def testfn():
     pass
 class TestBar:
