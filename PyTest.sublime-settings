@@ -30,6 +30,8 @@
     // don't want them
     "apply_theme_tweaks": true,
 
-    "file_regex": "^(.*):([0-9]+):(.)([\\w ]*)$"
+    "file_regex": "^(.*):([0-9]+):(.)([\\w ]*)$",
+
+    "env" : {}
 
 }

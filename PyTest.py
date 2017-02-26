@@ -127,7 +127,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
     def _fill_in_defaults(self, kwargs):
         return {key: kwargs.get(key, Settings.get(key))
                 for key in ['pytest', 'options', 'target', 'working_dir',
-                            'file_regex']}
+                            'file_regex', 'env']}
 
     def _expand(self, kwargs):
         env = self.window.extract_variables()
@@ -137,7 +137,6 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             rv[key] = sublime.expand_variables(kwargs[key], env)
 
         return rv
-
 
     def make_args(self, kwargs):
         options = kwargs['options']
@@ -150,9 +149,10 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         return {
             "file_regex": kwargs['file_regex'],
             "cmd": [kwargs['pytest']] + options + target,
-            "shell": True,
+            "shell": False,
             "working_dir": kwargs['working_dir'],
-            "quiet": True
+            "quiet": False,
+            "env": kwargs['env']
         }
 
 
@@ -332,4 +332,3 @@ def alive_indicator():
 
 
 show_status_ping = alive_indicator()
-

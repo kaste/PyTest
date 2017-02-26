@@ -12,12 +12,14 @@ from Default import exec
 
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
 
+
 def get_trace_back_mode(cmd):
     # type: (str) -> str
     """Parses cmd and returns a trace back mode"""
 
     match = TB_MODE.search(' '.join(cmd))
     return match.group(1) if match else 'auto'
+
 
 def broadcast(event, message=None):
     sublime.active_window().run_command(event, message)
@@ -28,6 +30,7 @@ def get_report_file():
     if not os.path.isdir(path):
         os.makedirs(path)
     return os.path.join(path, 'last-run.xml')
+
 
 class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
@@ -43,7 +46,6 @@ class PytestExecCommand(exec.ExecCommand):
             'mode': mode,
             'cmd': kw['cmd']
         })
-
 
         super(PytestExecCommand, self).run(**kw)
 
@@ -125,13 +127,11 @@ class PytestExecCommand(exec.ExecCommand):
             sublime.set_timeout(self.service_text_queue, 1)
 
 
-
 def get_whole_text(view):
     # type: (View) -> str
 
     reg = sublime.Region(0, view.size())
     return view.substr(reg)
-
 
 
 def parse_result(base_dir, parse_traceback):
@@ -237,5 +237,3 @@ def parse_output(text, base_dir, get_matches):
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
     })
-
-
