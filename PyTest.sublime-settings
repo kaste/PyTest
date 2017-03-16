@@ -33,7 +33,7 @@
     "file_regex": "^(.*):([0-9]+):(.)([\\w ]*)$",
 
     // Set environment variables here if needed
-    // e.g. {"LC_ALL":"C.utf-8", "LANG":"C.utf-8"}
+    // e.g. {"LC_ALL":"en_US.utf-8", "LANG":"en_US.utf-8"}
     "env" : {}
 
 }
