@@ -220,14 +220,17 @@ def get_testcase(testcase, file):
     if classname.startswith(dotted_filepath):
         classname = classname[len(dotted_filepath) + 1:]
         classname = classname.replace('.', '::').replace('()', '')
-        return file + '::' + classname + '::' + name
+        if len(classname) > 0:
+            return file + '::' + classname + '::' + name
+        else:
+            return file + "::" + name
     return ''
 
 
 def parse_output(text, base_dir, get_matches):
     # type: (str, str, Callable) -> Dict[Filename, List[Tuple[Line, Text]]]
 
-    fullname = functools.partial(os.path.join, base_dir)
+    fullname = functools.partial(os.path.join, base_dir) # buggy: need root_dir of pytest
     matches = get_matches(text, fullname)
 
     errs_by_file = defaultdict(list)
