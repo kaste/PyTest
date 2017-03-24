@@ -217,7 +217,9 @@ def get_testcase(testcase, file):
 
     root, _ = os.path.splitext(rel_file)
     dotted_filepath = root.replace(os.path.sep, '.')
-    if classname.startswith(dotted_filepath):
+    if classname == dotted_filepath:
+        return file + "::" + name
+    elif classname.startswith(dotted_filepath):
         classname = classname[len(dotted_filepath) + 1:]
         classname = classname.replace('.', '::').replace('()', '')
         return file + '::' + classname + '::' + name
