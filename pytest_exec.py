@@ -78,6 +78,8 @@ class PytestExecCommand(exec.ExecCommand):
             "failures": failures
         })
 
+        # This is a 'best' guess. Maybe we should parse the output for the
+        # `rootdir` pytest uses.
         base_dir = view.settings().get('result_base_dir')
 
         # For the 'line' go with output regex parsing bc the reporter
