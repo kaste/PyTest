@@ -47,6 +47,12 @@ Maybe a keybinding to run only the test under the cursor(s) as well:
 
 But that command is also available via the context menu.
 
+The third most useful keybinding could be
+
+    { "keys": ["ctrl+alt+'"], "command": "pytest_toggle_phantoms"},
+
+to quickly show/hide the annotations (in sublime parlance 'phantoms') b/c they can get quite annoying and in your way if you have a lot of failures or generally large tracebacks.
+
 You can disable this plugin via a command (`ctrl+shift+p` and start typing `pytest deactivate`). This setting will then be persisted in your project settings (if any).
 
 # Install

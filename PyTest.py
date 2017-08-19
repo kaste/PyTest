@@ -234,7 +234,8 @@ class PytestStart(sublime_plugin.WindowCommand):
             'modified': False,
             'errors': {},
             'summary': '',
-            'flashed_red': False
+            'flashed_red': False,
+            'show_phantoms': Settings.get('show_phantoms')
         })
 
 
@@ -295,6 +296,17 @@ class PytestDeactivate(sublime_plugin.WindowCommand):
         pytest = settings.setdefault('PyTest', {})
         pytest['mode'] = 'manual'
         self.window.set_project_data(data)
+
+
+class PytestTogglePhantoms(sublime_plugin.WindowCommand):
+    def run(self):
+        show_phantoms = State.get('show_phantoms', True)
+
+        State.update({
+            'show_phantoms': not show_phantoms,
+            'drawn_views': set(),
+        })
+        annotator.annotate_visible_views(**State)
 
 
 class PytestStillRunning(sublime_plugin.WindowCommand):

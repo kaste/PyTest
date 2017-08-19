@@ -26,6 +26,11 @@
 
     "open_panel_on_failures": false,
 
+    // Show inline annotations after a red test run. If false, you can still
+    // toggle these annotations by invoking the `pytest_toggle_phantoms`
+    // commands
+    "show_phantoms": true,
+
     // Set this to false, if you applied your tweaks manually, or just
     // don't want them
     "apply_theme_tweaks": true,

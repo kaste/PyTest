@@ -8,5 +8,7 @@
     {"caption": "PyTest: --tb=short --ff", "command": "pytest_run",
                                     "args": {"options": "--tb=short --ff"}},
     {"caption": "PyTest: Deactivate for this project",
-                            "command": "pytest_deactivate"}
+                            "command": "pytest_deactivate"},
+    {"caption": "PyTest: Toggle inline annotations",
+                            "command": "pytest_toggle_phantoms"}
 ]

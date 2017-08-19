@@ -38,7 +38,8 @@ PHANTOMS_MARKER = 'PyTestRunner'
 
 
 def annotate(view, errors={}, mode='auto', running=False,
-             drawn_views=set(), phantom_sets={}, **kwargs_):
+             drawn_views=set(), phantom_sets={}, show_phantoms=True,
+             **kwargs_):
 
     buffer_id = view.buffer_id()
     if buffer_id in drawn_views:
@@ -56,7 +57,7 @@ def annotate(view, errors={}, mode='auto', running=False,
         return
 
     _draw_regions(view, errs)
-    _draw_phantoms(view, errs, mode, phantom_sets)
+    _draw_phantoms(view, errs, mode, phantom_sets, show_phantoms)
     drawn_views.add(buffer_id)
 
 def annotate_visible_views(**kwargs):
@@ -78,8 +79,21 @@ def _draw_regions(view, errs):
                      REGIONS_ICON,
                      sublime.DRAW_OUTLINED)
 
-def _draw_phantoms(view, errs, mode, phantom_sets):
+
+def _draw_phantoms(view, errs, mode, phantom_sets, show_phantoms):
+    buffer_id = view.buffer_id()
+    if buffer_id not in phantom_sets:
+        phantom_set = sublime.PhantomSet(view, PHANTOMS_MARKER)
+        phantom_sets[buffer_id] = phantom_set
+    else:
+        phantom_set = phantom_sets[buffer_id]
+
     formatter = formatters.TB_MODES[mode]
+    phantoms = build_phantoms(view, errs, formatter) if show_phantoms else []
+    phantom_set.update(phantoms)
+
+
+def build_phantoms(view, errs, formatter):
     phantoms = []
 
     show_focus_links = len(errs) > 1
@@ -111,14 +125,8 @@ def _draw_phantoms(view, errs, mode, phantom_sets):
                 '</body>'),
             sublime.LAYOUT_BELOW, _on_navigate))
 
-    buffer_id = view.buffer_id()
-    if buffer_id not in phantom_sets:
-        phantom_set = sublime.PhantomSet(view, PHANTOMS_MARKER)
-        phantom_sets[buffer_id] = phantom_set
-    else:
-        phantom_set = phantom_sets[buffer_id]
+    return phantoms
 
-    phantom_set.update(phantoms)
 
 def _on_navigate(url):
     # split off 'focus:'
