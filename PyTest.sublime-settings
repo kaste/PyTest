@@ -1,5 +1,5 @@
 {
-    // point to your py.test executable
+    // Point to your py.test executable
     // usually use the one from your virtualenv
     // e.g. "~/venvs/{project_base}/scripts/py.test"
     "pytest": "py.test",
@@ -8,28 +8,34 @@
     // show-locals via -l
     "options": "--tb=auto -l",
 
-    // usually your project_path (which is the first folder in your project
+    // Usually your project_path (which is the first folder in your project
     // settings)
     "working_dir": "${project_path}",
 
-    // where your tests are located, often you can leave this blank because
+    // Where your tests are located, often you can leave this blank because
     // pytest will find your tests anyway. Otherwise usually below the
     // `working_dir`, so use a relative path, e.g. "tests" or "foo/tests"
     "target": "",
 
-    // false | true | 'all'
-    // if true saves the current view only
-    "save_before_test": false,
-
-    // "auto" == on save
+    // "auto": Automatically run your tests after saving a file
+    // "manual": Use commands and key bindings to run tests at your will
     "mode": "auto",
 
-    "open_panel_on_failures": false,
+    // false: Do not save, before running tests
+    // true: Save current file before running tests
+    // 'all': Save all unsaved files. (Usually this gets in your way when you
+    // have new 'untitled' views open.)
+    "save_before_test": false,
 
     // Show inline annotations after a red test run. If false, you can still
     // toggle these annotations by invoking the `pytest_toggle_phantoms`
-    // commands
+    // command
     "show_phantoms": true,
+
+    // Show the usual pytest output in a panel after a red test run. If false,
+    // you can still show/hide this panel by invoking the `pytest_toggle_panel`
+    // command
+    "open_panel_on_failures": false,
 
     // Set this to false, if you applied your tweaks manually, or just
     // don't want them
