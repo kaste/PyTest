@@ -57,9 +57,11 @@ You can disable this plugin via a command (`ctrl+shift+p` and start typing `pyte
 
 # Install
 
-As long as it's not listed, you can just manually download/clone from github and put it in your Packages directory. You have to run `Package Control: Satisfy Dependencies` after that to pull in `lxml`.
+End-users should just do the normal install using `Package Control` searching for `PyTest`.
 
-Or you go fancy, and add this repo to `Package Control`.
+Hackers can manually download/clone from github and put it in your Packages directory. You have to run `Package Control: Satisfy Dependencies` after that to pull in `lxml`.
+
+You can go fancy of course, and add this repo to `Package Control`.
 
 1. Open up the command palette (`ctrl+shift+p`), and find `Package Control: Add Repository`. Then enter the URL of this repo: `https://github.com/kaste/PyTest` in the input field.
 2. Open up the command palette again and find `Package Control: Install Package`, and just search for `PyTest`. (just a normal install)
