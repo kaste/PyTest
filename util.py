@@ -36,6 +36,9 @@ PYTEST_RULES = [
 
 def tweak_theme():
     view = sublime.active_window().active_view()
+    if not view:
+        return
+
     theme = view.settings().get('theme')
     if theme is None:
         print("Can't guess current theme.")
