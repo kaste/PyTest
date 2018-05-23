@@ -69,7 +69,8 @@ class PytestExecCommand(exec.ExecCommand):
 
         summary += last_line.replace('=', '')
 
-        failures = proc.exit_code() != 0
+        exit_code = proc.exit_code()
+        failures = exit_code is not None and exit_code > 0
         if failures:
             broadcast("pytest_will_fail")
 
