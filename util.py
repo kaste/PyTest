@@ -50,7 +50,6 @@ def tweak_theme():
             theme_text = f.read()
 
         if PYTEST_MARKERS.search(theme_text):
-            print("Already patched")
             return
 
         safety_path = os.path.join(
@@ -68,6 +67,6 @@ def tweak_theme():
     with open(theme_path, mode='w', encoding='utf-8') as f:
         f.write(tweaked_theme)
 
-    print('Done tweaking!')
+    print("PyTest: Done tweaking '{}'!".format(theme_path))
 
     # sublime.active_window().open_file(theme_path)
