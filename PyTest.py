@@ -48,27 +48,29 @@ class PytestAutoRunCommand(sublime_plugin.WindowCommand):
     def _compute_target(self):
         modified = State.get('modified', False)
         red = State.get('failures', False)
-        last_target = State.get('target')
-        if last_target and not isinstance(last_target, list):
-            last_target = [last_target]
+        last_targets = State.get('target')
+        if last_targets and not isinstance(last_targets, list):
+            last_targets = [last_targets]
         current_test = get_testfile(self.window)
 
         # If you switched from an implementation view into a test, or
         # from one test to another.
-        if (current_test and
-                (not last_target or
-                 any(current_test not in lt for lt in last_target))):
-            print('testfile')
+        if (
+            current_test and
+            (not last_targets or
+             any(current_test not in lt for lt in last_targets))
+        ):
+            # print('testfile')
             return current_test
 
         if modified:
-            print('modified')
-            return last_target or current_test or Settings.get('target')
+            # print('modified')
+            return last_targets or current_test or Settings.get('target')
         elif red:
-            print('red and not modified')
+            # print('red and not modified')
             return current_test or Settings.get('target')
-        else:  # green and not modified
-            print('green and not modified')
+        else:
+            # print('green and not modified')
             return Settings.get('target')
 
 
