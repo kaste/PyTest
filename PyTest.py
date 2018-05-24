@@ -207,7 +207,7 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
         if not window:
             return
 
-        if window.extract_variables()['file_extension'] != 'py':
+        if window.extract_variables().get('file_extension') != 'py':
             return
 
         window.run_command("pytest_auto_run")
@@ -220,7 +220,7 @@ class AutoRunPytestOnSaveCommand(sublime_plugin.EventListener):
         if not window:
             return
 
-        if window.extract_variables()['file_extension'] != 'py':
+        if window.extract_variables().get('file_extension') != 'py':
             return
 
         State.update({
