@@ -106,7 +106,10 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         closed if it was closed.
 
         """
-        ap = self.window.active_panel()
+        window = self.window
+        ap = window.active_panel()
+        ag = window.active_group()
+        av = window.active_view()
 
         kwargs = self._fill_in_defaults(kwargs)
         kwargs = self._expand(kwargs)
@@ -121,14 +124,17 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         # This is not universal, but a Win32 interpretation. Seems like Python
         # does not ship a function for this functionality. Seems strange.
         print("Run %s" % subprocess.list2cmdline(args['cmd']))
-        self.window.run_command("pytest_exec", args)
+        window.run_command("pytest_exec", args)
 
         # Sublime automatically opens the output panel on `exec`, so we restore
         # here to the previous state.
         if ap is None:
-            self.window.run_command("hide_panel", {"panel": OUTPUT_PANEL})
+            window.run_command("hide_panel", {"panel": OUTPUT_PANEL})
         else:
-            self.window.run_command("show_panel", {"panel": ap})
+            window.run_command("show_panel", {"panel": ap})
+            window.focus_group(ag)
+            window.focus_view(av)
+
 
     def _fill_in_defaults(self, kwargs):
         return {key: kwargs.get(key, Settings.get(key))
