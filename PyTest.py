@@ -123,8 +123,12 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         print("Run %s" % subprocess.list2cmdline(args['cmd']))
         self.window.run_command("pytest_exec", args)
 
-        if ap != OUTPUT_PANEL:
+        # Sublime automatically opens the output panel on `exec`, so we restore
+        # here to the previous state.
+        if ap is None:
             self.window.run_command("hide_panel", {"panel": OUTPUT_PANEL})
+        else:
+            self.window.run_command("show_panel", {"panel": ap})
 
     def _fill_in_defaults(self, kwargs):
         return {key: kwargs.get(key, Settings.get(key))
