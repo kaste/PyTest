@@ -1,6 +1,5 @@
 [
   {
     "command": "pytest_run_test_under_cursor",
-    "caption": "PyTest: Run test under cursor"
   },
 ]

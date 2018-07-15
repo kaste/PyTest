@@ -187,7 +187,10 @@ class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
     def description(self):
         file, tests = self.collect_tests()
         if tests:
-            return "Run %s" % ', '.join(map(repr, tests))
+            return "PyTest: Run %s" % ', '.join(map(repr, tests))
+
+        # The empty string is okay bc we're not visible if tests is false
+        return ""
 
     def collect_tests(self):
         view = self.view
