@@ -172,7 +172,8 @@ def parse_result(base_dir, parse_traceback):
                 # which should be the failing test
                 if culprit and len(f_tracebacks) > 1:
                     head = f_tracebacks[0]
-                    head['text'] = 'E   ' + culprit + '\n' + head['text']
+                    prefix = 'E    ' if not culprit.startswith('E   ') else ''
+                    head['text'] = prefix + culprit + '\n' + head['text']
                 tracebacks.extend(f_tracebacks)
 
         error = tc.find('error')

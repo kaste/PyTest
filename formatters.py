@@ -12,7 +12,7 @@ def indent(level):
 def reduced_indent(level):
     level = max(4, level)
     def dedent(t):
-        return re.sub(r'^E(\s+)', 'E' + (level - 1) * ' ', t)
+        return re.sub(r'^(E\s+)', 'E' + (level - 1) * ' ', t)
 
     return dedent
 
