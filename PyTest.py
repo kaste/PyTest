@@ -160,7 +160,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
 
         return {
             "file_regex": kwargs['file_regex'],
-            "cmd": [kwargs['pytest']] + options + target,
+            "cmd": kwargs['pytest'].split() + options + target,
             "working_dir": kwargs['working_dir'],
             "quiet": True,
             "env": kwargs['env']
