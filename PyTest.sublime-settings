@@ -10,7 +10,7 @@
 
     // Usually your project_path (which is the first folder in your project
     // settings)
-    "working_dir": "${project_path}",
+    "working_dir": "${folder}",
 
     // Where your tests are located, often you can leave this blank because
     // pytest will find your tests anyway. Otherwise usually below the
