@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 
 import itertools
+import shlex
 import subprocess
 
 from . import annotator
@@ -160,7 +161,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
 
         return {
             "file_regex": kwargs['file_regex'],
-            "cmd": kwargs['pytest'].split() + options + target,
+            "cmd": shlex.split(kwargs['pytest']) + options + target,
             "working_dir": kwargs['working_dir'],
             "quiet": True,
             "env": kwargs['env']
