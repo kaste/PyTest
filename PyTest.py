@@ -146,22 +146,16 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         env = self.window.extract_variables()
         rv = kwargs.copy()
 
-        for key in ['pytest', 'target', 'working_dir']:
+        for key in ['pytest', 'target', 'options']:
             rv[key] = sublime.expand_variables(kwargs[key], env)
-
+            rv[key] = shlex.split(rv[key])
+        rv['working_dir'] = shlex.quote(sublime.expand_variables(kwargs['working_dir'], env))
         return rv
 
     def make_args(self, kwargs):
-        options = kwargs['options']
-        if isinstance(options, str):
-            options = options.strip().split(' ')
-        target = kwargs['target']
-        if isinstance(target, str):
-            target = [target.strip()]
-
         return {
             "file_regex": kwargs['file_regex'],
-            "cmd": shlex.split(kwargs['pytest']) + options + target,
+            "cmd": kwargs['pytest'] + kwargs['options'] + kwargs['target'], 
             "working_dir": kwargs['working_dir'],
             "quiet": True,
             "env": kwargs['env']
