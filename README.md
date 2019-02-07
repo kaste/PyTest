@@ -18,7 +18,8 @@ At least **look** at the [global settings](https://github.com/kaste/PyTest/blob/
     OR:
     "pytest": ".env\\Scripts\\py.test"
     OR even:
-    "pytest": "venv/path/to/python -m pytest"
+    "pytest": ["venv/path/to/python", "-m", "pytest"]
+
 
 The plugin will expand ${project_path}, ${project_base_name}, ${file}, etc. as usual. It will respect your `project-settings` like:
 
