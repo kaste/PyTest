@@ -2,14 +2,13 @@ import sublime
 import sublime_plugin
 
 import itertools
-import shlex
-import os.path
 import subprocess
 
 from . import annotator
 from . import find_test
 from . import settings
 from . import util
+
 
 
 Settings = settings.Settings("PyTest")
