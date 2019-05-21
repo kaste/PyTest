@@ -1,8 +1,8 @@
-# py.test plugin for the sublime text editor
+# py.test integration for Sublime Text 3
 
-The plugin basically runs your tests, and annotates your files using the tracebacks.
+This plugin runs your tests and on failure annotates your files using the tracebacks.
 
-# Common workflow
+# Common Workflow
 
 The defaults: it will run your tests on save; it will not show an output panel but annotate your views on failures instead. Like so:
 
@@ -69,7 +69,7 @@ You can go fancy of course, and add this repo to `Package Control`.
 
 # Manual Theme Tweaking
 
-The plugin tries to tweak your theme, so that you get a green/red notification after each test run. (You can disable this via the settings.) If this doesn't work out, consider a manual tweak: you __really__ should add
+The plugin tries to tweak your theme so that you get a green/red notification after each test run. (You can disable this via the settings.) If this doesn't work out, consider a manual tweak: you __really__ should add
 
     {
         "class": "status_bar",
@@ -79,7 +79,7 @@ The plugin tries to tweak your theme, so that you get a green/red notification a
 
 to your `.sublime-theme` to flash the status bar early if there are failures.
 
-Likewise add
+Likewise, add
 
     {
         "class": "status_bar",
