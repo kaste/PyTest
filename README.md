@@ -1,6 +1,6 @@
 # py.test integration for Sublime Text 3
 
-This plugin runs your tests and on failure annotates your test files using the tracebacks.
+This plugin runs your tests and on failure annotates your files using the tracebacks.
 
 # Common Workflow
 
