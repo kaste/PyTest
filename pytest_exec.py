@@ -40,7 +40,10 @@ class PytestExecCommand(exec.ExecCommand):
         # Note that if the user already wants a xml-report, he has bad luck,
         # bc the last `--junit-xml` wins.
         if mode != 'line':
-            kw['cmd'] += ['--junit-xml={}'.format(get_report_file())]
+            kw['cmd'] += [
+                '--junit-xml={}'.format(get_report_file()),
+                '-o', 'junit_family=xunit2'
+            ]
 
         broadcast('pytest_start', {
             'mode': mode,
