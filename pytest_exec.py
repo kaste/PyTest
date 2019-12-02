@@ -40,14 +40,17 @@ class PytestExecCommand(exec.ExecCommand):
         # Note that if the user already wants a xml-report, he has bad luck,
         # bc the last `--junit-xml` wins.
         if mode != 'line':
-            kw['cmd'] += ['--junit-xml={}'.format(get_report_file())]
+            kw['cmd'] += [
+                '--junit-xml={}'.format(get_report_file()),
+                '-o', 'junit_family=xunit2'
+            ]
 
         broadcast('pytest_start', {
             'mode': mode,
             'cmd': kw['cmd']
         })
 
-        super(PytestExecCommand, self).run(**kw)
+        super().run(**kw)
 
         # output_view cannot be dumped through broadcast,
         # so we go the ugly mile
@@ -55,7 +58,7 @@ class PytestExecCommand(exec.ExecCommand):
         PyTest.State['pytest_view'] = self.output_view
 
     def finish(self, proc):
-        super(PytestExecCommand, self).finish(proc)
+        super().finish(proc)
 
         view = self.output_view
         output = get_whole_text(view).strip()
