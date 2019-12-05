@@ -42,7 +42,7 @@ class PytestExecCommand(exec.ExecCommand):
         if mode != 'line':
             kw['cmd'] += [
                 '--junit-xml={}'.format(get_report_file()),
-                '-o', 'junit_family=xunit2'
+                '-o', 'junit_family=legacy'
             ]
 
         broadcast('pytest_start', {
