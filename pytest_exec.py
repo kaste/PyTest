@@ -147,7 +147,7 @@ def parse_result(base_dir, parse_traceback):
     fullname = functools.partial(os.path.join, base_dir)
 
     tree = etree.parse(get_report_file())
-    testcases = tree.xpath('/testsuite/testcase[failure or error]')
+    testcases = tree.xpath('//testcase[failure or error]')
 
     all_tracebacks = []
     for tc in testcases:
