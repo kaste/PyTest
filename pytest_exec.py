@@ -146,14 +146,18 @@ def parse_result(base_dir, parse_traceback):
 
     fullname = functools.partial(os.path.join, base_dir)
 
+    def resolve_path(fpath):
+        return os.path.join(base_dir, relative_filename(base_dir, fpath))
+
     tree = etree.parse(get_report_file())
     testcases = tree.xpath('//testcase[failure or error]')
 
     all_tracebacks = []
     for tc in testcases:
         tracebacks = []
-        file = fullname(tc.attrib['file'])
-        testcase = get_testcase(tc, file)
+        rel_file = relative_filename(base_dir, tc.attrib['file'])
+        file = fullname(rel_file)
+        testcase = get_testcase(tc, file, rel_file)
 
         failure = tc.find('failure')
         if failure is not None:
@@ -166,7 +170,7 @@ def parse_result(base_dir, parse_traceback):
                 tracebacks.append(synthetic_traceback)
             else:
                 f_tracebacks = parse_traceback(
-                    failure.text, fullname, testcase)
+                    failure.text, resolve_path, testcase)
                 end = f_tracebacks[-1]
                 culprit = (matchers.get_culprit(end['text']) or
                            failure.attrib['message'])
@@ -181,7 +185,7 @@ def parse_result(base_dir, parse_traceback):
 
         error = tc.find('error')
         if error is not None:
-            e_tracebacks = parse_traceback(error.text, fullname, testcase)
+            e_tracebacks = parse_traceback(error.text, resolve_path, testcase)
             end = e_tracebacks[-1]
             culprit = matchers.get_culprit(end['text'])
 
@@ -217,8 +221,7 @@ def parse_result(base_dir, parse_traceback):
     })
 
 
-def get_testcase(testcase, file):
-    rel_file = testcase.attrib['file']
+def get_testcase(testcase, file, rel_file):
     name = testcase.attrib['name']
     classname = testcase.attrib['classname']
 
@@ -246,3 +249,71 @@ def parse_output(text, base_dir, get_matches):
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
     })
+
+
+
+
+def relative_filename(base, file):
+    # older py.test always returned a relative path
+    if not os.path.isabs(file):
+        return file
+
+    if os.path.commonprefix([base, file]) == base:
+        return os.path.relpath(file, base)
+
+    real_base = realpath(base)
+    if os.path.commonprefix([real_base, file]) == real_base:
+        return os.path.relpath(file, real_base)
+
+    # wrong base, still return something
+    print('wrong base:', base)
+    print('filename:', file)
+    return file
+
+
+# realpath for Window backport
+# Written by @deathaxe https://github.com/timbrel/GitSavvy/pull/1081/files#diff-39047a918e545b167713079ca7f4f0a9
+
+
+try:
+    from nt import _getfinalpathname
+    from sys import getwindowsversion
+    assert getwindowsversion().major >= 6
+
+    def realpath(path):
+        """Resolve symlinks and return real path to file.
+        Note:
+            This is a fix for the issue of `os.path.realpath()` not to resolve
+            symlinks on Windows as it is an alias to `os.path.abspath()` only.
+            see: http://bugs.python.org/issue9949
+            This fix applies to local paths only as symlinks are not resolved
+            by _getfinalpathname on network drives anyway.
+            Also note that _getfinalpathname in Python 3.3 throws
+            `NotImplementedError` on Windows versions prior to Windows Vista,
+            hence we fallback to `os.path.realpath()` on these platforms.
+        Arguments:
+            path (string): The path to resolve.
+        Returns:
+            string: The resolved absolute path if exists or path as provided
+                otherwise. If `path` is '' or None the current directory is
+                returned.
+        """
+        if path:
+            try:
+                real_path = _getfinalpathname(path)
+                if real_path[5] == ':':
+                    # Remove \\?\ from beginning of resolved path
+                    return real_path[4:]
+            except FileNotFoundError:
+                pass
+        return os.path.realpath(path)
+
+except (AttributeError, ImportError, AssertionError):
+    def realpath(path):
+        """Resolve symlinks and return real path to file.
+        Arguments:
+            path (string): The path to resolve.
+        Returns:
+            string: The resolved absolute path.
+        """
+        return os.path.realpath(path)
