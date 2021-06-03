@@ -35,7 +35,6 @@ def get_report_file():
 class PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
         mode = self._tb_mode = get_trace_back_mode(kw['cmd'])
-        print("INSIDE Pytest Exec: START run")
 
         # For the line mode, we don't get useful reports at all.
         # Note that if the user already wants a xml-report, he has bad luck,
@@ -51,22 +50,14 @@ class PytestExecCommand(exec.ExecCommand):
             'cmd': kw['cmd']
         })
 
-        print("INSIDE Pytest Exec: BEFORE super run")
-        print("INSIDE Pytest Exec: self.proc is " + str(self.proc))
         super().run(**kw)
-        print("INSIDE Pytest Exec: self.proc is " + str(self.proc))
-        print("INSIDE Pytest Exec: AFTER super run")
 
         # output_view cannot be dumped through broadcast,
         # so we go the ugly mile
         from . import PyTest
         PyTest.State['pytest_view'] = self.output_view
-        self.finish(self.proc)
-        print("INSIDE Pytest Exec: FINISH run")
 
-    def finish(self, proc):
-        # super().finish(proc)
-        print("INSIDE Pytest Exec: START finish")
+    def on_finished(self, proc):
 
         view = self.output_view
         output = get_whole_text(view).strip()
@@ -104,7 +95,6 @@ class PytestExecCommand(exec.ExecCommand):
             sublime.set_timeout_async(
                 functools.partial(
                     parse_result, base_dir, Matchers[self._tb_mode]))
-        print("INSIDE Pytest Exec: FINISH finish")
 
     def service_text_queue(self):
         self.text_queue_lock.acquire()
