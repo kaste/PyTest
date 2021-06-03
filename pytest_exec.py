@@ -11,6 +11,7 @@ from Default import exec
 
 
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
+SUBLIME4 = int(sublime.version()) >= 4000
 
 
 def get_trace_back_mode(cmd):
@@ -32,7 +33,7 @@ def get_report_file():
     return os.path.join(path, 'last-run.xml')
 
 
-class PytestExecCommand(exec.ExecCommand):
+class _PytestExecCommand(exec.ExecCommand):
     def run(self, **kw):
         mode = self._tb_mode = get_trace_back_mode(kw['cmd'])
 
@@ -51,15 +52,14 @@ class PytestExecCommand(exec.ExecCommand):
         })
 
         super().run(**kw)
+        self.show_errors_inline = False
 
         # output_view cannot be dumped through broadcast,
         # so we go the ugly mile
         from . import PyTest
         PyTest.State['pytest_view'] = self.output_view
 
-    def finish(self, proc):
-        super().finish(proc)
-
+    def _on_finish(self, proc):
         view = self.output_view
         output = get_whole_text(view).strip()
         last_line = output[output.rfind('\n'):]
@@ -97,25 +97,7 @@ class PytestExecCommand(exec.ExecCommand):
                 functools.partial(
                     parse_result, base_dir, Matchers[self._tb_mode]))
 
-    def service_text_queue(self):
-        self.text_queue_lock.acquire()
-
-        is_empty = False
-        try:
-            if len(self.text_queue) == 0:
-                # this can happen if a new build was started, which will clear
-                # the text_queue
-                return
-
-            characters = self.text_queue.popleft()
-            is_empty = (len(self.text_queue) == 0)
-        finally:
-            self.text_queue_lock.release()
-
-        self.output_view.run_command(
-            'append',
-            {'characters': characters, 'force': True, 'scroll_to_end': False})
-
+    def _on_data(self, characters):
         # actually only relevant with instafail
         if characters.find('\n') >= 0:
             # broadcast('pytest_remember_errors', {
@@ -129,8 +111,46 @@ class PytestExecCommand(exec.ExecCommand):
 
         broadcast('pytest_still_running')
 
-        if not is_empty:
-            sublime.set_timeout(self.service_text_queue, 1)
+
+if SUBLIME4:
+    class PytestExecCommand(_PytestExecCommand):
+        def on_finished(self, proc):
+            super().on_finished(proc)
+            self._on_finish(proc)
+
+        def write(self, characters):
+            super().write(characters)
+            self._on_data(characters)
+
+else:
+    class PytestExecCommand(_PytestExecCommand):
+        def finish(self, proc):
+            super().finish(proc)
+            self._on_finish(proc)
+
+        def service_text_queue(self):
+            self.text_queue_lock.acquire()
+
+            is_empty = False
+            try:
+                if len(self.text_queue) == 0:
+                    # this can happen if a new build was started, which will clear
+                    # the text_queue
+                    return
+
+                characters = self.text_queue.popleft()
+                is_empty = (len(self.text_queue) == 0)
+            finally:
+                self.text_queue_lock.release()
+
+            self.output_view.run_command(
+                'append',
+                {'characters': characters, 'force': True, 'scroll_to_end': False})
+
+            self._on_data(characters)
+
+            if not is_empty:
+                sublime.set_timeout(self.service_text_queue, 1)
 
 
 def get_whole_text(view):
