@@ -18,8 +18,10 @@ OUTPUT_PANEL = 'output.exec'
 
 
 def plugin_loaded():
+    print("Checking apply_theme_tweaks")
     if Settings.get('apply_theme_tweaks', False):
         util.tweak_theme()
+        print("TWEAKED THEME")
 
 
 class PytestAutoRunCommand(sublime_plugin.WindowCommand):
@@ -119,6 +121,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         })
 
         args = self.make_args(kwargs)
+        print("TRYING TO PING")
         show_status_ping()
 
         # This is not universal, but a Win32 interpretation. Seems like Python
@@ -267,6 +270,7 @@ class PytestStart(sublime_plugin.WindowCommand):
 
 class PytestFinished(sublime_plugin.WindowCommand):
     def run(self, summary, failures):
+        print("Pytest Finished")
         State.update({
             'summary': summary,
             'failures': failures,
@@ -275,6 +279,7 @@ class PytestFinished(sublime_plugin.WindowCommand):
 
         sublime.set_timeout(lambda: sublime.status_message(summary))
         if not failures:
+            print("FLASHING: GREEN")
             flash_status_bar('pytest_is_green', 500)
 
 
@@ -342,9 +347,12 @@ class PytestStillRunning(sublime_plugin.WindowCommand):
 
 def flash_status_bar(flag, ms=1500):
     settings = sublime.load_settings('Preferences.sublime-settings')
+    print("FLASHING: " + flag)
     settings.set(flag, True)
+    print("FLASHED: " + flag)
 
     sublime.set_timeout(lambda: settings.erase(flag), ms)
+    print("SET TIMEOUT: " + flag)
 
 
 def alive_indicator():
