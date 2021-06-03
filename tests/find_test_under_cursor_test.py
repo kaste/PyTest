@@ -88,6 +88,12 @@ class InstanceMethodsTest(TestBase):
     def testStubInstancesInsteadOfClasses(self):
         max = Dog()""",
         'InstanceMethodsTest::testStubInstancesInsteadOfClasses'),
+
+    ("""
+class ClassEndingWithTests(TestBase):
+    def testMethod(self):
+        pass""",
+        'ClassEndingWithTests::testMethod'),
 ])
 def testPasses(code, wanted):
     assert get_test_under_cursor(code) == wanted
@@ -109,4 +115,3 @@ class Foo:
 ])
 def testFailures(code):
     assert get_test_under_cursor(code) is None
-

@@ -60,7 +60,8 @@ def _find_class_ancestors(lines, indent):
             if curindent < indent:
                 clname_lower = clname.lower()
                 if (clname_lower.startswith('test') or
-                        clname_lower.endswith('test')):
+                        clname_lower.endswith('test') or
+                        clname_lower.endswith('tests')):
                     found.append(clname)
                     indent = curindent
                 else:
