@@ -217,8 +217,8 @@ def parse_result(base_dir, parse_traceback):
             # synthetic marker at the failing test
             synthetic_traceback = {
                 'file': file,
-                'line': int(tc.attrib['line']) + 1,
-                'text': error.attrib['message'] + ':\n' + culprit
+                'line': int(tc.attrib.get('line', 0)) + 1,
+                'text': error.attrib['message'] + ':\n' + (culprit or error.text)
             }
 
             tracebacks.append(synthetic_traceback)
