@@ -1,4 +1,4 @@
-# py.test integration for Sublime Text 3
+# py.test integration for Sublime Text
 
 This plugin runs your tests and on failure annotates your files using the tracebacks.
 
