@@ -84,6 +84,18 @@ class TestFoo:
 """, 'TestFoo'),
 
     ("""
+class BarTest:
+    def method(self):
+        pass
+""", 'BarTest'),
+
+    ("""
+class BazTests:
+    def method(self):
+        pass
+""", 'BazTests'),
+
+    ("""
 class InstanceMethodsTest(TestBase):
     def testStubInstancesInsteadOfClasses(self):
         max = Dog()""",

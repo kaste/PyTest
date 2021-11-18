@@ -4,7 +4,7 @@ import re
 # DEF_MATCH can be either 'def' or defining a 'class'!
 DEF_MATCH = re.compile(r'(\s*)(?:def|async def|class)\s+(\w+)[(:)]')
 CLASS_MATCH = re.compile(r'(\s*)class\s+(\w+)[(:)]')
-NAME_MATCH = re.compile(r'^[tT]est')
+NAME_MATCH = re.compile(r'(^[tT]est|.*[tT]ests?$)')
 
 
 def get_test_under_cursor(text):
