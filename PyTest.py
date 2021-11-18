@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 
 import itertools
+import os
 import subprocess
 
 from . import annotator
@@ -146,7 +147,9 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         rv = kwargs.copy()
 
         for key in ['pytest', 'target', 'working_dir']:
-            rv[key] = sublime.expand_variables(kwargs[key], env)
+            rv[key] = os.path.expanduser(
+                sublime.expand_variables(kwargs[key], env)
+            )
 
         return rv
 
