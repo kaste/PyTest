@@ -1,6 +1,7 @@
 import sublime
 import sublime_plugin
 
+from collections import Mapping, Sequence
 import itertools
 import os
 import subprocess
@@ -147,9 +148,7 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         rv = kwargs.copy()
 
         for key in ['pytest', 'target', 'working_dir']:
-            rv[key] = os.path.expanduser(
-                sublime.expand_variables(kwargs[key], env)
-            )
+            rv[key] = substitute_variables(env, kwargs[key])
 
         return rv
 
@@ -171,6 +170,23 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
             "quiet": True,
             "env": kwargs['env']
         }
+
+
+def substitute_variables(variables, value):
+    if isinstance(value, str):
+        # Workaround https://github.com/SublimeTextIssues/Core/issues/1878
+        # (E.g. UNC paths on Windows start with double slashes.)
+        value = value.replace(r'\\', r'\\\\')
+        value = sublime.expand_variables(value, variables)
+        return os.path.expanduser(value)
+    elif isinstance(value, Mapping):
+        return {key: substitute_variables(variables, val)
+                for key, val in value.items()}
+    elif isinstance(value, Sequence):
+        return [substitute_variables(variables, item)
+                for item in value]
+    else:
+        return value
 
 
 class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
