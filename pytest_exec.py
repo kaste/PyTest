@@ -52,6 +52,9 @@ class _PytestExecCommand(exec.ExecCommand):
         })
 
         super().run(**kw)
+        if self.proc is None:
+            broadcast("pytest_exec_failed")
+
         self.show_errors_inline = False
 
         # output_view cannot be dumped through broadcast,

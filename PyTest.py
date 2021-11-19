@@ -128,9 +128,11 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         print("Run %s" % subprocess.list2cmdline(args['cmd']))
         window.run_command("pytest_exec", args)
 
-        # Sublime automatically opens the output panel on `exec`, so we restore
-        # here to the previous state.
-        if ap is None:
+        # Sublime automatically opens the output panel on `exec`; unless
+        # the cmd failed we restore the previous state.
+        if State['exec_failed']:
+            window.run_command("show_panel", {"panel": OUTPUT_PANEL})
+        elif ap is None:
             window.run_command("hide_panel", {"panel": OUTPUT_PANEL})
         else:
             window.run_command("show_panel", {"panel": ap})
@@ -280,6 +282,7 @@ class PytestStart(sublime_plugin.WindowCommand):
             'errors': {},
             'summary': '',
             'flashed_red': False,
+            'exec_failed': False,
             'show_phantoms': Settings.get('show_phantoms')
         })
 
@@ -306,6 +309,11 @@ class PytestRememberErrors(sublime_plugin.WindowCommand):
         })
 
         annotator.annotate_visible_views(**State)
+
+
+class PytestExecFailed(sublime_plugin.WindowCommand):
+    def run(self):
+        State['exec_failed'] = True
 
 
 class PytestWillFail(sublime_plugin.WindowCommand):
