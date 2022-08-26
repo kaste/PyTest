@@ -71,7 +71,12 @@ class _PytestExecCommand(exec.ExecCommand):
         matches = re.finditer(r' ([\d]+) ', last_line)
         if matches:
             test_count = sum(int(m.group(1)) for m in matches)
-            summary = "Ran %s tests. " % (test_count)
+            try:
+                failure_summary = \
+                    "%s. " % re.search(r'\d+ failed', last_line).group(0)
+            except AttributeError:
+                failure_summary = ''
+            summary = "Ran %s tests. %s" % (test_count, failure_summary)
 
         summary += last_line.replace('=', '')
 
