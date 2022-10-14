@@ -5,6 +5,7 @@ from collections import defaultdict
 import functools
 import os
 import re
+import sys
 
 from .matchers import Matchers
 from Default import exec
@@ -296,7 +297,7 @@ def relative_filename(base, file):
     if os.path.commonprefix([base, file]) == base:
         return os.path.relpath(file, base)
 
-    real_base = realpath(base)
+    real_base = resolve_path(base)
     if os.path.commonprefix([real_base, file]) == real_base:
         return os.path.relpath(file, real_base)
 
@@ -306,50 +307,25 @@ def relative_filename(base, file):
     return file
 
 
-# realpath for Window backport
-# Written by @deathaxe
-# https://github.com/timbrel/GitSavvy/pull/1081/files#diff-39047a918e545b167713079ca7f4f0a9
+if (
+    sys.platform == "win32"
+    and sys.version_info < (3, 8)
+    and sys.getwindowsversion()[:2] >= (6, 0)
+):
+    try:
+        from nt import _getfinalpathname
+    except ImportError:
+        resolve_path = os.path.realpath
+    else:
+        def resolve_path(path):
+            # type: (str) -> str
+            rpath = _getfinalpathname(path)
+            if rpath.startswith("\\\\?\\"):
+                rpath = rpath[4:]
+                if rpath.startswith("UNC\\"):
+                    rpath = "\\" + rpath[3:]
+            return rpath
 
+else:
+    resolve_path = os.path.realpath
 
-try:
-    from nt import _getfinalpathname  # type: ignore[import]
-    from sys import getwindowsversion
-    assert getwindowsversion().major >= 6
-
-    def realpath(path):
-        """Resolve symlinks and return real path to file.
-        Note:
-            This is a fix for the issue of `os.path.realpath()` not to resolve
-            symlinks on Windows as it is an alias to `os.path.abspath()` only.
-            see: http://bugs.python.org/issue9949
-            This fix applies to local paths only as symlinks are not resolved
-            by _getfinalpathname on network drives anyway.
-            Also note that _getfinalpathname in Python 3.3 throws
-            `NotImplementedError` on Windows versions prior to Windows Vista,
-            hence we fallback to `os.path.realpath()` on these platforms.
-        Arguments:
-            path (string): The path to resolve.
-        Returns:
-            string: The resolved absolute path if exists or path as provided
-                otherwise. If `path` is '' or None the current directory is
-                returned.
-        """
-        if path:
-            try:
-                real_path = _getfinalpathname(path)
-                if real_path[5] == ':':
-                    # Remove \\?\ from beginning of resolved path
-                    return real_path[4:]
-            except FileNotFoundError:
-                pass
-        return os.path.realpath(path)
-
-except (AttributeError, ImportError, AssertionError):
-    def realpath(path):
-        """Resolve symlinks and return real path to file.
-        Arguments:
-            path (string): The path to resolve.
-        Returns:
-            string: The resolved absolute path.
-        """
-        return os.path.realpath(path)
