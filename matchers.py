@@ -2,9 +2,13 @@
 import functools
 import re
 
+MYPY = False
+if MYPY:
+    from typing import Callable, Dict, List
+
 
 def _get_matches(regex, i, j, k, text, make_abs, testcase=''):
-    # type: (Regex, int, int, int, str) -> List[Dict]
+    # type: (re.Pattern, int, int, int, str, Callable[[str], str], str) -> List[Dict]
     return [{'file': make_abs(m[i]), 'line': int(m[j]), 'text': m[k],
              'testcase': testcase}
             for m in regex.findall(text)]

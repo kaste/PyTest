@@ -12,10 +12,30 @@ from . import settings
 from . import util
 
 
+MYPY = False
+if MYPY:
+    from typing import Dict, List, Set, TypedDict, Union
+    _State = TypedDict("_State", {
+        'mode': str,
+        'cmd': Union[str, List[str]],
+        'target': Union[str, List[str]],
+        'options': Union[str, List[str]],
+        'running': bool,
+        'modified': bool,
+        'errors': Dict,
+        'summary': str,
+        'failures': str,
+        'drawn_views': Set[sublime.BufferId],
+        'phantom_sets': Dict[sublime.BufferId, sublime.PhantomSet],
+        'flashed_red': bool,
+        'exec_failed': bool,
+        'show_phantoms': bool,
+        'pytest_view': sublime.View,
+    }, total=False)
 Settings = settings.Settings('PyTest')
 
 
-State = {}
+State = {}  # type: _State
 OUTPUT_PANEL = 'output.exec'
 
 
@@ -137,7 +157,8 @@ class PytestRunCommand(sublime_plugin.WindowCommand):
         else:
             window.run_command("show_panel", {"panel": ap})
             window.focus_group(ag)
-            window.focus_view(av)
+            if av:
+                window.focus_view(av)
 
 
     def _fill_in_defaults(self, kwargs):
@@ -202,7 +223,9 @@ class PytestRunTestUnderCursor(sublime_plugin.TextCommand):
 
         target = ["{}::{}".format(file, test) for test in tests]
 
-        view.window().run_command("pytest_auto_run", {'target': target})
+        window = view.window()
+        if window:
+            window.run_command("pytest_auto_run", {'target': target})
 
     def is_visible(self):
         file, tests = self.collect_tests()
@@ -344,7 +367,7 @@ class PytestTogglePanelCommand(sublime_plugin.WindowCommand):
 
 class PytestDeactivate(sublime_plugin.WindowCommand):
     def run(self):
-        data = self.window.project_data()
+        data = self.window.project_data() or {}
         settings = data.setdefault('settings', {})
         pytest = settings.setdefault('PyTest', {})
         pytest['mode'] = 'manual'

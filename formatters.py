@@ -4,6 +4,10 @@ import html
 import re
 
 
+MYPY = False
+if MYPY:
+    from typing import Callable, List
+
 
 def indent(level):
     indentation = level * ' '

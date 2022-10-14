@@ -3,6 +3,14 @@ import sublime
 
 from . import formatters
 
+MYPY = False
+if MYPY:
+    from typing import Dict, Optional, TypedDict
+    Filename = str
+    Tracebacks = TypedDict("Tracebacks", {
+        "file": str, "line": int, "text": str
+    })
+
 
 STYLESHEET = '''
     <style>
@@ -118,11 +126,14 @@ def build_phantoms(view, errs, formatter):
 
         phantoms.append(sublime.Phantom(
             sublime.Region(pt, view.line(pt).b),
-            ('<body id=inline-error>' + STYLESHEET +
+            (
+                '<body id=inline-error>' +
+                STYLESHEET +
                 '<div class="error">' +
                 '<span class="message">' + text + '</span>' +
                 '</div>' +
-                '</body>'),
+                '</body>'
+            ),
             sublime.LAYOUT_BELOW, _on_navigate))
 
     return phantoms
@@ -137,17 +148,22 @@ def _on_navigate(url):
 
 
 def get_errors_for_view(view, errors_by_view):
-    # type: (View, Dict[Filename, Tracebacks]) -> Optional[Tracebacks]
+    # type: (sublime.View, Dict[Filename, Tracebacks]) -> Optional[Tracebacks]
     """Return errors for a given view or None."""
 
     window = view.window()
+    if not window:
+        return None
+
     for file, tracebacks in errors_by_view.items():
         if view == window.find_open_file(file):
             return tracebacks
+    else:
+        return None
 
 
 def get_indentation_at(view, pt):
-    # type: (View, Point) -> int
+    # type: (sublime.View, sublime.Point) -> int
     """Return the indentation level as an int given a view and a point"""
 
     line = view.substr(view.line(pt))

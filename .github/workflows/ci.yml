@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  check-messages:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: kaste/upgrade-messages-test-action@v1
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: TrueBrain/actions-flake8@v2
+
+  run-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        st-version: [3, 4]
+        os: ["ubuntu-latest", "windows-latest"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: SublimeText/UnitTesting/actions/setup@v1
+        with:
+          sublime-text-version: ${{ matrix.st-version }}
+      - uses: SublimeText/UnitTesting/actions/run-tests@v1
