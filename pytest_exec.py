@@ -10,6 +10,13 @@ from .matchers import Matchers
 from Default import exec
 
 
+MYPY = False
+if MYPY:
+    from typing import Callable
+    Filename = str
+    Line = int
+    Text = str
+
 TB_MODE = re.compile(r"tb[= ](.*?)\s")
 SUBLIME4 = int(sublime.version()) >= 4000
 
@@ -72,8 +79,10 @@ class _PytestExecCommand(exec.ExecCommand):
         if matches:
             test_count = sum(int(m.group(1)) for m in matches)
             try:
-                failure_summary = \
-                    "%s. " % re.search(r'\d+ failed', last_line).group(0)
+                failure_summary = (
+                    "%s. "
+                    % re.search(r'\d+ failed', last_line).group(0)  # type: ignore[union-attr]
+                )
             except AttributeError:
                 failure_summary = ''
             summary = "Ran %s tests. %s" % (test_count, failure_summary)
@@ -131,7 +140,7 @@ if SUBLIME4:
             self._on_data(characters)
 
 else:
-    class PytestExecCommand(_PytestExecCommand):
+    class PytestExecCommand(_PytestExecCommand):  # type: ignore[no-redef]
         def finish(self, proc):
             super().finish(proc)
             self._on_finish(proc)
@@ -162,7 +171,7 @@ else:
 
 
 def get_whole_text(view):
-    # type: (View) -> str
+    # type: (sublime.View) -> str
 
     reg = sublime.Region(0, view.size())
     return view.substr(reg)
@@ -265,7 +274,7 @@ def get_testcase(testcase, file, rel_file):
 
 
 def parse_output(text, base_dir, get_matches):
-    # type: (str, str, Callable) -> Dict[Filename, List[Tuple[Line, Text]]]
+    # type: (str, str, Callable) -> None
 
     fullname = functools.partial(os.path.join, base_dir)
     matches = get_matches(text, fullname)
@@ -277,8 +286,6 @@ def parse_output(text, base_dir, get_matches):
     broadcast('pytest_remember_errors', {
         "errors": errs_by_file,
     })
-
-
 
 
 def relative_filename(base, file):
@@ -300,11 +307,12 @@ def relative_filename(base, file):
 
 
 # realpath for Window backport
-# Written by @deathaxe https://github.com/timbrel/GitSavvy/pull/1081/files#diff-39047a918e545b167713079ca7f4f0a9
+# Written by @deathaxe
+# https://github.com/timbrel/GitSavvy/pull/1081/files#diff-39047a918e545b167713079ca7f4f0a9
 
 
 try:
-    from nt import _getfinalpathname
+    from nt import _getfinalpathname  # type: ignore[import]
     from sys import getwindowsversion
     assert getwindowsversion().major >= 6
 
