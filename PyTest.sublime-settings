@@ -3,7 +3,7 @@
     // usually use the one from your virtualenv
     // e.g. "~/venvs/{project_base}/scripts/py.test"
     // use a list for a command line e.g ["poetry","run","pytest"]
-    "pytest": "py.test",
+    "pytest": "pytest",
 
     // supported tb modes are: line, short, long, auto
     // show-locals via -l
