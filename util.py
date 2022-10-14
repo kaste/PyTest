@@ -44,6 +44,13 @@ def tweak_theme():
         print("Can't guess current theme.")
         return
 
+    if theme == 'auto':
+        print(
+            "Not implemented for 'auto'.  "
+            "https://github.com/kaste/PyTest/issues/38  \n"
+            "You could try an implementation and send a pull request.")
+        return
+
     theme_path = os.path.join(sublime.packages_path(), 'User', theme)
     if os.path.exists(theme_path):
         with open(theme_path, mode='r', encoding='utf-8') as f:
