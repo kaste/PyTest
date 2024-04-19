@@ -46,9 +46,9 @@ def tweak_theme():
 
     if theme == 'auto':
         print(
-            "Not implemented for 'auto'.  "
+            "Theme patching is not implemented for 'auto'.  "
             "https://github.com/kaste/PyTest/issues/38  \n"
-            "You could try an implementation and send a pull request.")
+            "You could try an implementation and make a pull request.")
         return
 
     theme_path = os.path.join(sublime.packages_path(), 'User', theme)
