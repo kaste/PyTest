@@ -41,12 +41,12 @@ def tweak_theme():
 
     theme = view.settings().get('theme')
     if theme is None:
-        print("Can't guess current theme.")
+        print("PyTest: Can't guess current theme.")
         return
 
     if theme == 'auto':
         print(
-            "Theme patching is not implemented for 'auto'.  "
+            "PyTest: Theme patching is not implemented for 'auto'.  "
             "https://github.com/kaste/PyTest/issues/38  \n"
             "You could try an implementation and make a pull request.")
         return
