@@ -1,7 +1,7 @@
 import sublime
 import sublime_plugin
 
-from collections import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 import itertools
 import os
 import subprocess
